@@ -1,0 +1,65 @@
+name: Release
+
+# Push a tag to ship:
+#   git tag v0.1.0        && git push origin v0.1.0         -> stable
+#   git tag v0.2.0-beta.1 && git push origin v0.2.0-beta.1  -> beta channel (prerelease)
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write   # lets the built-in GITHUB_TOKEN create the release; no secrets to set up
+
+env:
+  VPK_VERSION: 0.0.1298   # keep in step with the Velopack package in Mantel.csproj
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Work out version and channel
+        id: v
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          $isBeta = $version.Contains('-')
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "channel=$(if ($isBeta) { 'beta' } else { 'win' })" >> $env:GITHUB_OUTPUT
+          "pre=$(if ($isBeta) { '--pre' } else { '' })" >> $env:GITHUB_OUTPUT
+
+      - name: Publish app
+        run: >
+          dotnet publish src/Mantel/Mantel.csproj -c Release -r win-x64 --self-contained true
+          -p:Version=${{ steps.v.outputs.version }} -o publish
+
+      - name: Install vpk
+        run: dotnet tool install -g vpk --version ${{ env.VPK_VERSION }}
+
+      # Pulls the previous release so vpk can build a small delta package against it.
+      # Fails harmlessly on the very first release of a channel.
+      - name: Download previous release
+        continue-on-error: true
+        run: >
+          vpk download github --repoUrl ${{ github.server_url }}/${{ github.repository }}
+          --channel ${{ steps.v.outputs.channel }} --token ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pack
+        run: >
+          vpk pack --packId Mantel --packVersion ${{ steps.v.outputs.version }}
+          --packDir publish --mainExe Mantel.exe --packTitle Mantel
+          --icon src/Mantel/Assets/mantel.ico --channel ${{ steps.v.outputs.channel }}
+
+      - name: Upload to GitHub Releases
+        run: >
+          vpk upload github --repoUrl ${{ github.server_url }}/${{ github.repository }}
+          --publish --releaseName "Mantel ${{ steps.v.outputs.version }}"
+          --tag ${{ github.ref_name }} --channel ${{ steps.v.outputs.channel }}
+          --token ${{ secrets.GITHUB_TOKEN }} ${{ steps.v.outputs.pre }}

@@ -1,0 +1,77 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Mantel design language: dark glass cards, warm amber accent. -->
+
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="#E0141519" />
+    <Setter Property="BorderBrush" Value="#22FFFFFF" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="Padding" Value="18,14" />
+    <!-- Room for the shadow inside the transparent window. -->
+    <Setter Property="Margin" Value="12" />
+    <Setter Property="BoxShadow" Value="0 6 24 0 #59000000" />
+  </Style>
+
+  <!-- Unlocked: an amber outline shows the widgets can be dragged. -->
+  <Style Selector="Border.card.unlocked">
+    <Setter Property="BorderBrush" Value="#B3E8A15A" />
+  </Style>
+
+  <Style Selector="TextBlock.big">
+    <Setter Property="FontSize" Value="44" />
+    <Setter Property="FontWeight" Value="Light" />
+    <Setter Property="Foreground" Value="#F0ECE4" />
+    <Setter Property="LineHeight" Value="48" />
+  </Style>
+
+  <Style Selector="TextBlock.label">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="1" />
+    <Setter Property="Foreground" Value="#8C8A86" />
+  </Style>
+
+  <Style Selector="TextBlock.value">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Foreground" Value="#F0ECE4" />
+  </Style>
+
+  <Style Selector="TextBlock.muted">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Foreground" Value="#A8A49D" />
+  </Style>
+
+  <Style Selector="Border.track">
+    <Setter Property="Background" Value="#1FFFFFFF" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="Height" Value="6" />
+  </Style>
+
+  <Style Selector="Border.fill">
+    <Setter Property="Background" Value="#E8A15A" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </Style>
+
+  <Style Selector="Border.fill.hot">
+    <Setter Property="Background" Value="#E8665A" />
+  </Style>
+
+  <!-- Settings window -->
+  <Style Selector="TextBlock.section">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="1" />
+    <Setter Property="Foreground" Value="#E8A15A" />
+    <Setter Property="Margin" Value="0,18,0,6" />
+  </Style>
+
+  <Style Selector="Button.accent">
+    <Setter Property="Background" Value="#E8A15A" />
+    <Setter Property="Foreground" Value="#141519" />
+  </Style>
+
+</Styles>
