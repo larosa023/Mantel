@@ -11,8 +11,8 @@
     <ApplicationIcon>Assets\mantel.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <!-- CI overrides this from the git tag (v1.2.3 -> 1.2.3). -->
-    <Version>0.1.0</Version>
+    <!-- Bump this and push to main to ship a release (see .github/workflows/release.yml). -->
+    <Version>0.1.1</Version>
     <Product>Mantel</Product>
     <Description>Clean, lightweight desktop widgets for Windows.</Description>
   </PropertyGroup>

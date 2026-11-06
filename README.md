@@ -48,13 +48,8 @@ Dev builds run normally but skip update checks, since they aren't installed thro
 
 ### Releasing
 
-Push a version tag. GitHub Actions builds, packages and publishes the release.
+Bump `<Version>` in `src/Mantel/Mantel.csproj` and push to `main`. GitHub Actions tags, builds, packages and publishes the release. Pushing a `v*` tag or creating a release on GitHub also works.
 
-```
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-A tag with a suffix, such as `v0.2.0-beta.1`, publishes to the beta channel as a prerelease. Only people with "Beta updates" turned on receive it.
+A version with a suffix, such as `0.2.0-beta.1`, publishes to the beta channel as a prerelease. Only people with "Beta updates" turned on receive it.
 
 The first release produces `Mantel-win-Setup.exe` on the Releases page. Install from that once, and every later release arrives on its own.
