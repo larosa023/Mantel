@@ -424,4 +424,39 @@
     <Setter Property="Cursor" Value="Hand" />
   </Style>
 
+
+  <!-- Text on accent-colored buttons. Plain-text button content is drawn by the button's own
+       content presenter, so its color has to be set there (in every state), not on a TextBlock. -->
+  <Style Selector="Button.segment.selected, Button.primary, Button.chip.on">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.segment.selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.segment.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.segment.selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.chip.on /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.chip.on:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <!-- Unselected segments and chips keep readable text on hover too. -->
+  <Style Selector="Window.settings Button.segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="#F0ECE4" />
+  </Style>
+
 </Styles>
