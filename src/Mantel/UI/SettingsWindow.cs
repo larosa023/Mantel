@@ -57,8 +57,8 @@ public sealed class SettingsWindow : Window
         _appearanceChanged = appearanceChanged;
 
         Title = "Mantel settings";
-        Width = 980;
-        Height = 700;
+        Width = 1060;
+        Height = 720;
         MinWidth = 760;
         MinHeight = 520;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -598,7 +598,7 @@ public sealed class SettingsWindow : Window
 
         var wallpaper = new Border
         {
-            Width = 216, Height = 122,
+            Width = 196, Height = 112,
             CornerRadius = new CornerRadius(10),
             ClipToBounds = true,
             Background = new LinearGradientBrush
@@ -624,7 +624,7 @@ public sealed class SettingsWindow : Window
         if (selected) title.Children.Add(Icons.Create(Icons.Check, 16, accent: true));
         var desc = Muted(t.Description, 12);
         desc.Margin = new Thickness(2, 2, 0, 0);
-        desc.Width = 216;
+        desc.Width = 196;
         return new StackPanel { Children = { wallpaper, title, desc } };
     }
 

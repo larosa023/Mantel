@@ -33,6 +33,7 @@ Nine themes, from small color changes to a completely different look: **Glass** 
 ## Using it
 
 - **Tray icon:** click to open Settings; right-click for widget toggles, lock, updates and quit.
+- **Start menu:** opening Mantel while it's already running brings up Settings.
 - **Move widgets:** unlock (tray menu or right-click a widget), drag, then lock again.
 - **Snapping:** dragged widgets snap to an 8px grid and to screen edges (can be turned off).
 - **Settings and positions** are saved in `%AppData%\Mantel\settings.json`; a log is kept next to it.
