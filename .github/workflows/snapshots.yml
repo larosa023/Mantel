@@ -25,6 +25,10 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      # Render in the user's time zone so game times and the clock read like they will at home.
+      - name: Use Eastern time
+        run: tzutil /s "Eastern Standard Time"
+
       - name: Render
         run: dotnet run --project tools/Mantel.Snapshots -c Release -- ${{ github.workspace }}\out
 

@@ -26,6 +26,15 @@ public sealed class Sparkline : Control
 
     public void Push(double value)
     {
+        if (_count == 0)
+        {
+            // Start as a flat line at the first reading, so a fresh graph isn't an empty gap.
+            Array.Fill(_samples, double.IsFinite(value) ? Math.Max(0, value) : 0);
+            _count = _samples.Length;
+            _next = 0;
+            InvalidateVisual();
+            return;
+        }
         _samples[_next] = double.IsFinite(value) ? Math.Max(0, value) : 0;
         _next = (_next + 1) % _samples.Length;
         _count = Math.Min(_count + 1, _samples.Length);

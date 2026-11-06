@@ -34,7 +34,7 @@ public sealed class UpdateService
     private static readonly TimeSpan IdleBeforeApply = TimeSpan.FromMinutes(10);
 
     private readonly MantelSettings _settings;
-    private readonly UpdateManager _stable;
+    private readonly UpdateManager? _stable;
     private readonly DispatcherTimer _checkTimer;
     private readonly DispatcherTimer _idleTimer;
     private UpdateManager? _pendingManager;
@@ -55,8 +55,13 @@ public sealed class UpdateService
     public UpdateService(MantelSettings settings)
     {
         _settings = settings;
-        _stable = CreateManager(beta: false);
-        State = _stable.IsInstalled ? UpdateState.Idle : UpdateState.NotInstalled;
+        try { _stable = CreateManager(beta: false); }
+        catch (Exception ex)
+        {
+            // Not running under Velopack at all (dev builds, screenshot rendering): updates are off.
+            Log.Info($"Updates unavailable: {ex.Message}");
+        }
+        State = IsInstalled ? UpdateState.Idle : UpdateState.NotInstalled;
 
         _checkTimer = new DispatcherTimer { Interval = FirstCheckDelay };
         _checkTimer.Tick += async (_, _) =>
@@ -73,7 +78,7 @@ public sealed class UpdateService
         };
     }
 
-    public bool IsInstalled => _stable.IsInstalled;
+    public bool IsInstalled => _stable?.IsInstalled == true;
 
     public void Start()
     {
@@ -146,11 +151,12 @@ public sealed class UpdateService
     /// </summary>
     private async Task<(UpdateManager? Manager, UpdateInfo? Info)> FindBestUpdateAsync()
     {
-        var current = _stable.CurrentVersion;
+        var stable = _stable!;
+        var current = stable.CurrentVersion;
         var candidates = new List<(UpdateManager, UpdateInfo)>();
 
-        var stableInfo = await _stable.CheckForUpdatesAsync();
-        if (stableInfo is not null) candidates.Add((_stable, stableInfo));
+        var stableInfo = await stable.CheckForUpdatesAsync();
+        if (stableInfo is not null) candidates.Add((stable, stableInfo));
 
         if (_settings.BetaUpdates)
         {

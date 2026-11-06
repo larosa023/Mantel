@@ -177,8 +177,10 @@ internal static class Scenes
     /// <summary>Renders a flyout's panel exactly as the app builds it, docked to the right of a desktop.</summary>
     private static (Window, IReadOnlyList<IWidget>) Flyout((FlyoutSettings Flyout, List<WidgetInstanceSettings> Items) spec)
     {
-        var panel = new Mantel.Flyouts.FlyoutPanel(spec.Flyout, spec.Items, _ => new ContextMenu());
+        var panel = new Mantel.Flyouts.FlyoutPanel(spec.Flyout, spec.Items, _ => new ContextMenu(), () => { });
         panel.BuildWidgets();
+        // Edge flyouts run the full height of the screen, as they do in the app.
+        if (spec.Flyout.Edge is "left" or "right") panel.SetHeight(DesktopHeight - 20);
         PreviewMusic(panel.Widgets);
 
         var window = new Window

@@ -44,6 +44,8 @@ public sealed class ClockWidget : TimedWidget
 
         _date = new TextBlock { Margin = new(2, 2, 0, 0) };
         _date.Classes.Add("muted");
+        // In a flyout the header already shows today's date; only show it for other time zones there.
+        _date.IsVisible = Settings.FlyoutId is null || ResolveZone(Settings) is not null;
 
         var timeRow = new StackPanel { Orientation = Orientation.Horizontal, Children = { _time, _period } };
         return new StackPanel { Width = Mantel.UI.WidgetCard.ContentWidth, Children = { _label, timeRow, _date } };

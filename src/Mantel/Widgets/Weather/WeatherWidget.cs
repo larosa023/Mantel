@@ -152,12 +152,11 @@ public sealed class WeatherWidget : IWidget
         var today = r.Days.FirstOrDefault();
         _range.Text = today is null
             ? $"Feels {r.FeelsLike:0}°"
-            : $"H {today.High:0}°  L {today.Low:0}° · Feels {r.FeelsLike:0}° · {r.Wind:0} {unit}";
+            : $"H {today.High:0}° · L {today.Low:0}°\nFeels {r.FeelsLike:0}° · Wind {r.Wind:0} {unit}";
 
         // Next six hours: time, icon, temperature (and rain chance when it's likely).
         _hours.Children.Clear();
-        var now = DateTime.Now;
-        var nextHours = r.Hours.Where(h => h.Time > now.AddMinutes(-30)).Take(6).ToList();
+        var nextHours = r.Hours.Take(6).ToList();
         for (var i = 0; i < nextHours.Count; i++)
         {
             var h = nextHours[i];

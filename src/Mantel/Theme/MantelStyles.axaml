@@ -222,6 +222,9 @@
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
+  <Style Selector="Button.row">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.Text}" />
+  </Style>
   <Style Selector="Button.row:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource Mantel.Track}" />
   </Style>
