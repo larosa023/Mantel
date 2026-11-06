@@ -185,7 +185,13 @@ public sealed class SettingsWindow : Window
             page = Muted("This page couldn't load. The log has details.");
         }
 
-        _scroll.Content = new Border { Padding = new Thickness(40, 44, 40, 40), Child = new Border { MaxWidth = 760, HorizontalAlignment = HorizontalAlignment.Left, Child = page } };
+        // Pages fill the width up to a comfortable reading width, left-aligned.
+        var column = new Grid
+        {
+            ColumnDefinitions = { new ColumnDefinition(GridLength.Star) { MaxWidth = 780 }, new ColumnDefinition(GridLength.Auto) },
+        };
+        column.Children.Add(page);
+        _scroll.Content = new Border { Padding = new Thickness(40, 44, 40, 40), Child = column };
         if (!resetScroll) Dispatcher.UIThread.Post(() => _scroll.Offset = offset, DispatcherPriority.Loaded);
         else _scroll.Offset = default;
         SyncFromModel();
