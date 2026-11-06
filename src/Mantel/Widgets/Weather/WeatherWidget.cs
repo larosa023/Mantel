@@ -158,7 +158,8 @@ public sealed class WeatherWidget : IWidget
         var today = r.Days.FirstOrDefault();
         _range.Text = today is null
             ? $"Feels {r.FeelsLike:0}°"
-            : $"H {today.High:0}° · L {today.Low:0}°\nFeels {r.FeelsLike:0}° · Wind {r.Wind:0} {unit}";
+            // Non-breaking spaces keep "Wind 6 mph" together; narrow cards wrap only between phrases.
+            : $"H\u00A0{today.High:0}° · L\u00A0{today.Low:0}°\nFeels\u00A0{r.FeelsLike:0}° · Wind\u00A0{r.Wind:0}\u00A0{unit}";
 
         // Next six hours: time, icon, temperature (and rain chance when it's likely).
         _hours.Children.Clear();
