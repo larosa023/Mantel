@@ -84,7 +84,56 @@ public static class ThemeManager
             "#F2050805", "#8039FF14", 0, new Thickness(16, 12), 1, "0 0 0 0 #00000000",
             "#39FF14", "#C8FFC0", "#6FBF63", "#4F9944", "#1A39FF14", "#2639FF14")
         { FontFamily = "Cascadia Mono, Consolas, monospace", BigWeight = FontWeight.Normal, BigSize = 40 },
+
+        // --- Popular palettes ------------------------------------------------------------------
+
+        new ThemeDef("catppuccin", "Catppuccin", "Soft pastel mocha: lavender, pink and peach.", false,
+            "#F21E1E2E", "#313244", 16, Normal, 1, "0 6 24 0 #59000000",
+            "#CBA6F7", "#CDD6F4", "#A6ADC8", "#7F849C", "#313244", "#313244"),
+
+        new ThemeDef("dracula", "Dracula", "The classic dark purple with neon pink.", false,
+            "#F2282A36", "#44475A", 14, Normal, 1, "0 6 22 0 #66000000",
+            "#FF79C6", "#F8F8F2", "#C1C4D6", "#8B93B8", "#44475A", "#44475A"),
+
+        new ThemeDef("tokyo", "Tokyo Night", "Deep navy with electric blue.", false,
+            "#F21A1B26", "#292E42", 14, Normal, 1, "0 6 24 0 #66000000",
+            "#7AA2F7", "#C0CAF5", "#9AA5CE", "#737AA2", "#292E42", "#292E42"),
+
+        new ThemeDef("gruvbox", "Gruvbox", "Retro warm browns and mustard.", false,
+            "#F2282828", "#3C3836", 10, Normal, 1, "0 4 16 0 #59000000",
+            "#FABD2F", "#EBDBB2", "#BDAE93", "#928374", "#3C3836", "#3C3836"),
+
+        new ThemeDef("rosepine", "Rosé Pine", "Muted dusk with rose and gold.", false,
+            "#F2191724", "#26233A", 18, Normal, 1, "0 6 24 0 #59000000",
+            "#EBBCBA", "#E0DEF4", "#908CAA", "#6E6A86", "#26233A", "#26233A"),
+
+        // --- Bigger changes ----------------------------------------------------------------------
+
+        new ThemeDef("frost", "Frost", "Bright frosted glass for dark wallpapers.", true,
+            "#B3F4F7FB", "#66FFFFFF", 22, new Thickness(20, 16), 1, "0 10 30 0 #40000000",
+            "#3B82F6", "#0F172A", "#334155", "#475569", "#1F0F172A", "#1A0F172A"),
+
+        new ThemeDef("synthwave", "Synthwave", "80s sunset: magenta to orange glow, bold numbers.", false,
+            "#F2241B35", "#C0F92AAD", 18, new Thickness(20, 16), 1.5, "0 0 26 0 #80F92AAD",
+            "#F92AAD", "#FDF6FF", "#D4B8E8", "#A88BC7", "#3A2C55", "#3A2C55")
+        { Glow = true, BigWeight = FontWeight.Bold },
+
+        new ThemeDef("mono", "Mono", "Pure grayscale, crisp and minimal. Square-ish corners.", false,
+            "#F2111111", "#33FFFFFF", 4, new Thickness(18, 14), 1, "0 0 0 0 #00000000",
+            "#FFFFFF", "#F5F5F5", "#A3A3A3", "#8A8A8A", "#2A2A2A", "#262626")
+        { BigWeight = FontWeight.ExtraLight, BigSize = 52 },
+
+        new ThemeDef("pill", "Pill", "Extra-round cards with roomy padding.", false,
+            "#E6181A20", "#1FFFFFFF", 30, new Thickness(26, 20), 1, "0 10 30 0 #59000000",
+            "#5AD19A", "#F0F4F2", "#A7B3AD", "#86928C", "#24FFFFFF", "#1AFFFFFF"),
+
+        new ThemeDef("solar", "Solarized Light", "Low-glare cream with teal and orange.", true,
+            "#F2FDF6E3", "#1A586E75", 12, Normal, 1, "0 4 16 0 #26000000",
+            "#CB4B16", "#073642", "#586E75", "#657B83", "#1A073642", "#14073642"),
     };
+
+    /// <summary>Desktop widget size multiplier (1.0 = normal), set from Appearance.</summary>
+    public static double WidgetScale { get; private set; } = 1.0;
 
     public static ThemeDef Current { get; private set; } = All[0];
 
@@ -96,13 +145,17 @@ public static class ThemeManager
     public static ThemeDef Find(string? id) => All.FirstOrDefault(t => t.Id == id) ?? All[0];
 
     /// <summary>Applies a theme's colors and shapes to every widget (styles read these as dynamic resources).</summary>
-    public static void Apply(Application app, string? themeId, string? accentOverride)
+    public static void Apply(Application app, string? themeId, string? accentOverride, int cardOpacity = 100, int widgetScale = 100)
     {
         var t = Find(themeId);
         Current = t;
+        WidgetScale = Math.Clamp(widgetScale, 70, 150) / 100.0;
         var r = app.Resources;
 
-        r["Mantel.CardBackground"] = Brush(t.CardBackground);
+        // Card opacity scales the theme's own background alpha (and its border with it).
+        var opacity = Math.Clamp(cardOpacity, 0, 100) / 100.0;
+        var bg = Color.Parse(t.CardBackground);
+        r["Mantel.CardBackground"] = new SolidColorBrush(Color.FromArgb((byte)(bg.A * opacity), bg.R, bg.G, bg.B));
         r["Mantel.CardBorder"] = Brush(t.CardBorder);
         r["Mantel.CardBorderThickness"] = new Thickness(t.CardBorderThickness);
         r["Mantel.CardRadius"] = new CornerRadius(t.CardRadius);

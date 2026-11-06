@@ -69,7 +69,7 @@ Run("settings", () =>
 
     foreach (var page in SettingsWindow.PageNames)
     {
-        var window = new SettingsWindow(store, manager, updates, () => { }) { Width = 980, Height = 720 };
+        var window = new SettingsWindow(store, manager, updates, () => { }) { Width = 1060, Height = 1200 };
         window.ShowPage(page);
         Scenes.Capture(window, Array.Empty<IWidget>(), Path.Combine(outDir, $"settings-{page}.png"), settleMs: 800);
     }
@@ -96,7 +96,7 @@ return failures == 0 ? 0 : 1;
 
 internal static class Scenes
 {
-    public const double DesktopWidth = 1440, DesktopHeight = 900;
+    public const double DesktopWidth = 1560, DesktopHeight = 900;
 
     /// <summary>A dark, photo-like wallpaper so see-through themes look the way they will on a real desktop.</summary>
     public static IBrush Wallpaper() => new LinearGradientBrush
@@ -127,6 +127,9 @@ internal static class Scenes
             Make("scores", new() { ["league"] = "nba", ["max"] = "6" }),
             Make("countdown", new() { ["title"] = "Bid due", ["target"] = DateTime.Now.AddDays(4).AddHours(3).ToString("yyyy-MM-ddTHH:mm") }),
             Make("disks"),
+            Make("calendar"),
+            Make("notes", new() { ["title"] = "To do", ["text"] = "Send the Holmdel takeoff to Mike\nCheck rebar quantities on sheet S-201\nBid walk Thursday 9 AM" }),
+            Make("launcher", new() { ["title"] = "Apps", ["apps"] = "Amplite|amplite.exe\nFullcourt|https://nbafullcourty.netlify.app\nBluebeam Revu|revu.exe\nExcel|excel.exe\nEmber|ember.exe\nDownloads|C:\\Users\nPlanSwift|planswift.exe" }),
         };
     }
 
@@ -138,7 +141,7 @@ internal static class Scenes
     /// <summary>Lays widget cards out in three columns over the wallpaper.</summary>
     public static Window Desktop(IReadOnlyList<IWidget> widgets, string caption)
     {
-        var columns = new[] { new[] { 0, 1 }, new[] { 2, 3, 4 }, new[] { 5, 6, 7 } };
+        var columns = new[] { new[] { 0, 1 }, new[] { 2, 3, 4 }, new[] { 5, 6, 7 }, new[] { 8, 10, 9 } };
         var grid = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(40, 56, 40, 40) };
         foreach (var col in columns)
         {

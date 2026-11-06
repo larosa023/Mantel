@@ -1,7 +1,10 @@
+using Mantel.Widgets.Calendar;
 using Mantel.Widgets.Clock;
 using Mantel.Widgets.Countdown;
 using Mantel.Widgets.Disks;
+using Mantel.Widgets.Launcher;
 using Mantel.Widgets.Network;
+using Mantel.Widgets.Notes;
 using Mantel.Widgets.NowPlaying;
 using Mantel.Widgets.Scores;
 using Mantel.Widgets.SystemStats;
@@ -52,6 +55,26 @@ public static class WidgetRegistry
         {
             BuildOptions = CountdownWidget.BuildOptions,
             Subtitle = CountdownWidget.Subtitle,
+        },
+
+        new WidgetDescriptor("calendar", "Calendar", "This month, with today highlighted",
+            EnabledByDefault: false, Create: s => new CalendarWidget(s))
+        {
+            BuildOptions = CalendarWidget.BuildOptions,
+        },
+
+        new WidgetDescriptor("notes", "Notes", "A sticky note you can type on",
+            EnabledByDefault: false, Create: s => new NotesWidget(s))
+        {
+            BuildOptions = NotesWidget.BuildOptions,
+            Subtitle = NotesWidget.Subtitle,
+        },
+
+        new WidgetDescriptor("launcher", "App launcher", "Your favorite apps, folders and files, one click away",
+            EnabledByDefault: false, Create: s => new LauncherWidget(s))
+        {
+            BuildOptions = LauncherWidget.BuildOptions,
+            Subtitle = LauncherWidget.Subtitle,
         },
 
         new WidgetDescriptor("disks", "Disk space", "Free space on each drive",

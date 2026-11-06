@@ -383,6 +383,15 @@ public sealed class SettingsWindow : Window
         return Card(Icons.ForFlyout(f.Icon), f.Name, FlyoutSummary(f), toggle, onClick: () => OpenFlyout(id));
     }
 
+    private static string AnimationHint(string style) => style switch
+    {
+        "fade" => "Fades in place",
+        "zoom" => "Grows out of its edge",
+        "spring" => "Slides in and settles with a little bounce",
+        "none" => "Appears instantly",
+        _ => "Glides in from its edge",
+    };
+
     private string FlyoutSummary(FlyoutSettings f)
     {
         var count = _widgets.Instances.Count(w => w.FlyoutId == f.Id);
@@ -422,6 +431,69 @@ public sealed class SettingsWindow : Window
             Card(Icons.Taskbar, "Taskbar icon", "An icon by the clock; click it to open the flyout", tray),
             Card(Icons.Edge, "Screen edge", "Push the mouse against this edge to slide it out", edge),
         }));
+
+        // Shortcut and edge timing.
+        var hotkey = new ComboBox { MinWidth = 170 };
+        var keys = new List<string> { "" };
+        keys.AddRange(Hotkeys.Keys);
+        foreach (var k in keys) hotkey.Items.Add(new ComboBoxItem { Content = Hotkeys.Describe(k) });
+        hotkey.SelectedIndex = Math.Max(0, keys.IndexOf(f.Hotkey));
+        hotkey.SelectionChanged += (_, _) =>
+        {
+            if (hotkey.SelectedIndex < 0) return;
+            var key = keys[hotkey.SelectedIndex];
+            if (key == f.Hotkey) return;
+            // One shortcut opens one flyout: take it away from any other flyout using it.
+            if (key.Length > 0) foreach (var other in _widgets.FlyoutList.Where(o => o.Id != f.Id && o.Hotkey == key)) other.Hotkey = "";
+            f.Hotkey = key;
+            _widgets.FlyoutChanged();
+        };
+        var triggerCards = new List<Control>
+        {
+            Card(Icons.Keyboard, "Keyboard shortcut", "Press it anywhere to open or close this flyout", hotkey),
+        };
+        if (f.Edge is "left" or "right" or "top")
+            triggerCards.Add(Card(Icons.Timer, "Edge delay", "How long the mouse rests on the edge before it opens",
+                Segmented(new[] { ("instant", "Instant"), ("short", "Short"), ("long", "Long") }, () => f.EdgeDelay, v => { f.EdgeDelay = v; _widgets.FlyoutChanged(); })));
+        page.Children.Add(Cards(triggerCards));
+
+        // Motion.
+        page.Children.Add(Group("Animation"));
+        page.Children.Add(Cards(new[]
+        {
+            Card(Icons.Motion, "Style", AnimationHint(f.Animation),
+                Segmented(new[] { ("slide", "Slide"), ("fade", "Fade"), ("zoom", "Zoom"), ("spring", "Spring"), ("none", "None") },
+                    () => f.Animation, v => { f.Animation = v; _widgets.FlyoutChanged(structural: true); })),
+            Card(Icons.Timer, "Speed", null,
+                Segmented(new[] { ("fast", "Fast"), ("normal", "Normal"), ("relaxed", "Relaxed") },
+                    () => f.Speed, v => { f.Speed = v; _widgets.FlyoutChanged(); })),
+        }));
+
+        // Placement.
+        page.Children.Add(Group("Placement"));
+        var placement = new List<Control>();
+        if (f.Edge == "top")
+        {
+            placement.Add(Card(Icons.Edge, "Position along the top", "Follow the mouse, or stay put",
+                Segmented(new[] { ("auto", "Follow mouse"), ("start", "Left"), ("center", "Center"), ("end", "Right") },
+                    () => f.Align, v => { f.Align = v; _widgets.FlyoutChanged(); })));
+        }
+        else if (f.Edge is "left" or "right")
+        {
+            placement.Add(Card(Icons.Resize, "Full height", "Run from the top of the screen to the taskbar, like a side panel",
+                Toggle(() => f.FullHeight, v => { f.FullHeight = v; _widgets.FlyoutChanged(structural: true); })));
+            if (!f.FullHeight)
+                placement.Add(Card(Icons.Edge, $"Position along the {f.Edge} edge", null,
+                    Segmented(new[] { ("start", "Top"), ("center", "Middle"), ("end", "Bottom") },
+                        () => f.Align == "auto" ? "center" : f.Align, v => { f.Align = v; _widgets.FlyoutChanged(); })));
+        }
+        placement.Add(Card(Icons.Edge, "Gap from the edge", "Space between the flyout and the edge of the screen",
+            Segmented(new[] { ("0", "None"), ("6", "Small"), ("16", "Medium"), ("32", "Large") },
+                () => f.Gap.ToString(), v => { f.Gap = int.Parse(v); _widgets.FlyoutChanged(); })));
+        placement.Add(Card(Icons.Monitor, "Screen", "Where it opens from its taskbar icon or shortcut",
+            Segmented(new[] { ("mouse", "Under the mouse"), ("primary", "Main screen") },
+                () => f.Monitor, v => { f.Monitor = v; _widgets.FlyoutChanged(); })));
+        page.Children.Add(Cards(placement));
 
         // Look: name and icon.
         var name = new TextBox { Text = f.Name, MinWidth = 220 };
@@ -510,6 +582,17 @@ public sealed class SettingsWindow : Window
             else if (ThemeManager.ParseAccent(settings.Accent) is null) SetAccent(AccentPresets[0]);
             Rerender();
         });
+
+        page.Children.Add(Group("Widgets"));
+        page.Children.Add(Cards(new[]
+        {
+            Card(Icons.Resize, "Widget size", "How big desktop widgets are",
+                Segmented(new[] { ("85", "Small"), ("100", "Normal"), ("115", "Large"), ("130", "Huge") },
+                    () => settings.WidgetScale.ToString(), v => { settings.WidgetScale = int.Parse(v); _store.Save(); _appearanceChanged(); })),
+            Card(Icons.Palette, "Card opacity", "Lower lets more of your wallpaper show through",
+                Segmented(new[] { ("40", "40%"), ("60", "60%"), ("80", "80%"), ("100", "Solid") },
+                    () => settings.CardOpacity.ToString(), v => { settings.CardOpacity = int.Parse(v); _store.Save(); _appearanceChanged(); })),
+        }));
 
         page.Children.Add(Group("Accent color"));
         var cards = new List<Control>

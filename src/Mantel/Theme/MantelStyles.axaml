@@ -167,6 +167,37 @@
     <Setter Property="Background" Value="{DynamicResource Mantel.AccentSoft}" />
   </Style>
 
+  <!-- App launcher tiles -->
+  <Style Selector="Border.launcher-tile">
+    <Setter Property="Background" Value="{DynamicResource Mantel.Track}" />
+  </Style>
+  <Style Selector="Button.row:pointerover Border.launcher-tile">
+    <Setter Property="Background" Value="{DynamicResource Mantel.AccentSoft}" />
+  </Style>
+  <Style Selector="Border.launcher-tile > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.Accent}" />
+  </Style>
+
+  <!-- Notes: the text box blends into the card -->
+  <Style Selector="TextBox.note">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.Text}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource Mantel.Accent}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource Mantel.AccentSoft}" />
+  </Style>
+  <Style Selector="TextBox.note:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="TextBox.note:focus /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="TextBox.note /template/ TextBlock#PART_Watermark">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.TextMuted}" />
+  </Style>
+
   <!-- Line icons (UI/Icons.cs) take the surrounding text color unless given one -->
   <Style Selector="Path.icon-stroke">
     <Setter Property="Stroke" Value="{DynamicResource Mantel.Text}" />

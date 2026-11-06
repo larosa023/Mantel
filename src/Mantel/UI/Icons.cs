@@ -41,6 +41,13 @@ public static class Icons
     public const string Taskbar = "M3 16h18v4H3z M15 18h3 M8 4h8v8H8z";
     public const string Check = "M5 12.5l4.5 4.5L19 7.5";
     public const string Info = Circle9 + " M12 11v5 M12 8h.01";
+    public const string Calendar = "M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5 M8 14h.01 M12 14h.01 M16 14h.01 M8 17h.01 M12 17h.01";
+    public const string Note = "M5 4h10l4 4v12H5z M15 4v4h4 M8 12h8 M8 16h5";
+    public const string Launcher = "M5 5h5v5H5z M14 5h5v5h-5z M5 14h5v5H5z M14 14h5v5h-5z M16.5 15v3 M15 16.5h3";
+    public const string Motion = "M4 12h9 M4 7h5 M4 17h5 M13 7l5 5-5 5";
+    public const string Keyboard = "M3 7h18v10H3z M7 10h.01 M11 10h.01 M15 10h.01 M7 13h.01 M17 13h.01 M9 14.5h6";
+    public const string Monitor = "M3 5h18v11H3z M9 20h6 M12 16v4";
+    public const string Resize = "M4 14v6h6 M20 10V4h-6 M4 20l7-7 M20 4l-7 7";
 
     /// <summary>The icon for a widget type.</summary>
     public static string ForWidget(string type) => type switch
@@ -53,6 +60,9 @@ public static class Icons
         "countdown" => Timer,
         "disks" => Disk,
         "network" => Network,
+        "calendar" => Calendar,
+        "notes" => Note,
+        "launcher" => Launcher,
         _ => Widgets,
     };
 

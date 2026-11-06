@@ -44,7 +44,11 @@ public sealed class WidgetWindow : Window
 
         Mantel.UI.WidgetCard.ApplyFont(this);
         _card = Mantel.UI.WidgetCard.Create(widget.View, menu);
-        Content = _card;
+        // Appearance → Widget size scales desktop widgets as a whole (text, art and spacing together).
+        var scale = Mantel.Theme.ThemeManager.WidgetScale;
+        Content = Math.Abs(scale - 1) < 0.001
+            ? _card
+            : new LayoutTransformControl { LayoutTransform = new Avalonia.Media.ScaleTransform(scale, scale), Child = _card };
 
         SetLocked(locked);
 
@@ -130,7 +134,8 @@ public sealed class WidgetWindow : Window
         if (_locked) return;
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
         // Let buttons inside widgets (play/pause) work even when unlocked.
-        if (e.Source is Visual v && v.FindAncestorOfType<Button>(includeSelf: true) is not null) return;
+        if (e.Source is Visual v && (v.FindAncestorOfType<Button>(includeSelf: true) is not null ||
+                                     v.FindAncestorOfType<TextBox>(includeSelf: true) is not null)) return;
         BeginMoveDrag(e);
     }
 

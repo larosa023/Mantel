@@ -11,29 +11,29 @@ namespace Mantel.Flyouts;
 public enum FlyoutOrigin { Left, Right, Top, Taskbar }
 
 /// <summary>
-/// The window that slides a <see cref="FlyoutPanel"/> in. Edge flyouts run the full height of
-/// the screen like a side panel; taskbar flyouts pop up above the clock like Windows' own.
-/// Widgets inside are created the first time it opens and only run while it's open.
+/// The window that brings a <see cref="FlyoutPanel"/> on screen, with the motion and placement
+/// chosen in the flyout's settings (slide, fade, zoom or spring; aligned to the start, center or
+/// end of its edge; full height or fitted). Widgets inside are created the first time it opens
+/// and only run while it's open.
 /// </summary>
 public sealed class FlyoutWindow : Window
 {
-    private static readonly TimeSpan OpenLength = TimeSpan.FromMilliseconds(220);
-    private static readonly TimeSpan CloseLength = TimeSpan.FromMilliseconds(150);
     private const double Shadow = 14; // the panel's transparent margin for its shadow
 
+    private readonly FlyoutSettings _flyout;
     private readonly FlyoutPanel _panel;
     private readonly TranslateTransform _slide = new();
+    private readonly ScaleTransform _scale = new(1, 1);
     private DispatcherTimer? _animation;
+    private PixelPoint _anchor;
+    private bool _placed;
 
     public FlyoutOrigin Origin { get; private set; }
 
     public bool IsOpen { get; private set; }
 
-    /// <summary>Opened from Settings' "Open it now": stays open until it loses focus, even if it's an edge flyout.</summary>
+    /// <summary>Opened on purpose (taskbar icon, shortcut, Settings): stays open until it loses focus.</summary>
     public bool IsPinned { get; private set; }
-
-    private PixelPoint _anchor;
-    private bool _placed;
 
     /// <summary>When it last closed; lets a tray click that closed it (by stealing focus) not reopen it.</summary>
     public DateTime ClosedAt { get; private set; }
@@ -41,6 +41,8 @@ public sealed class FlyoutWindow : Window
     public FlyoutWindow(FlyoutSettings flyout, IReadOnlyList<WidgetInstanceSettings> instances,
                         Func<WidgetInstanceSettings, ContextMenu> menuFor, Action openSettings)
     {
+        _flyout = flyout;
+
         Title = $"Mantel — {flyout.Name}";
         SystemDecorations = SystemDecorations.None;
         TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent };
@@ -54,15 +56,15 @@ public sealed class FlyoutWindow : Window
 
         _panel = new FlyoutPanel(flyout, instances, menuFor, () => { CloseFlyout(); openSettings(); })
         {
-            RenderTransform = _slide,
+            RenderTransform = new TransformGroup { Children = { _scale, _slide } },
         };
         Content = _panel;
 
-        // Opened from the taskbar (or pinned) it takes focus, so clicking anywhere else closes it, like Windows' own flyouts.
+        // Opened on purpose it takes focus, so clicking anywhere else closes it, like Windows' own flyouts.
         Deactivated += (_, _) => { if (IsOpen && (Origin == FlyoutOrigin.Taskbar || IsPinned)) CloseFlyout(); };
 
-        // Content can grow after it opens (scores and weather load a moment later). Re-anchor so a
-        // taskbar flyout grows upward instead of running off the bottom of the screen.
+        // Content can grow after it opens (scores and weather load a moment later). Re-anchor so it
+        // stays aligned (a taskbar flyout grows upward instead of running off the screen).
         _panel.SizeChanged += (_, _) => { if (IsOpen && _placed) PlaceAt(_anchor); };
         KeyDown += (_, e) => { if (e.Key == Avalonia.Input.Key.Escape) CloseFlyout(); };
         Opened += (_, _) =>
@@ -72,7 +74,10 @@ public sealed class FlyoutWindow : Window
         };
     }
 
-    /// <summary>Opens on the screen under <paramref name="cursor"/> (physical pixels).</summary>
+    /// <summary>
+    /// Opens it. <paramref name="cursor"/> (physical pixels) picks the screen for edge triggers and
+    /// where a top flyout following the mouse lands.
+    /// </summary>
     public void OpenFlyout(FlyoutOrigin origin, PixelPoint cursor, bool pinned = false)
     {
         if (IsOpen) { if (origin == FlyoutOrigin.Taskbar || pinned) Activate(); return; }
@@ -84,17 +89,18 @@ public sealed class FlyoutWindow : Window
         _panel.RefreshHeader();
         _panel.Horizontal = origin == FlyoutOrigin.Top;
 
-        // Size it for the screen it's opening on: side panels fill the height, others cap at it.
-        var screen = Screens.ScreenFromPoint(cursor) ?? Screens.Primary ?? Screens.All.FirstOrDefault();
+        // Size it for the screen it's opening on: full-height side panels fill it, others cap at it.
+        var screen = TargetScreen(cursor);
         if (screen is not null)
         {
             var workHeight = screen.WorkingArea.Height / screen.Scaling;
-            if (origin is FlyoutOrigin.Left or FlyoutOrigin.Right)
-                _panel.SetHeight(workHeight - Shadow * 2 + 8);
+            var room = workHeight - Shadow * 2 + (Shadow - Gap) * 2;
+            if (origin is FlyoutOrigin.Left or FlyoutOrigin.Right && _flyout.FullHeight)
+                _panel.SetHeight(room);
             else
             {
                 _panel.SetHeight(null);
-                _panel.SetMaxHeight(workHeight - Shadow * 2);
+                _panel.SetMaxHeight(room);
             }
         }
 
@@ -106,7 +112,7 @@ public sealed class FlyoutWindow : Window
         Show();
         if (ShowActivated) Activate();
 
-        // Size is known only after the first layout pass: place it then, and slide it in.
+        // Size is known only after the first layout pass: place it then, and animate it in.
         Dispatcher.UIThread.Post(() =>
         {
             if (!IsOpen) return;
@@ -149,33 +155,57 @@ public sealed class FlyoutWindow : Window
         }
     }
 
+    // --- Placement -----------------------------------------------------------------------------
+
+    private double Gap => Math.Clamp(_flyout.Gap, 0, 64);
+
+    /// <summary>Edge triggers use the screen being touched; opened on purpose, the flyout's monitor setting decides.</summary>
+    private Avalonia.Platform.Screen? TargetScreen(PixelPoint cursor)
+    {
+        if (IsPinned && _flyout.Monitor == "primary" && Screens.Primary is { } primary) return primary;
+        return Screens.ScreenFromPoint(cursor) ?? Screens.Primary ?? Screens.All.FirstOrDefault();
+    }
+
     private void PlaceAt(PixelPoint cursor)
     {
-        var screen = Screens.ScreenFromPoint(cursor) ?? Screens.Primary ?? Screens.All.FirstOrDefault();
+        var screen = TargetScreen(cursor);
         if (screen is null) return;
         var area = screen.WorkingArea;
         var bounds = screen.Bounds;
         var size = PixelSize.FromSize(Bounds.Size, screen.Scaling);
-        // The panel sits inside a transparent shadow margin; tuck most of it off-screen at an edge
-        // so the panel itself lands a few pixels from the edge.
-        var tuck = (int)((Shadow - 6) * screen.Scaling);
+        // The panel sits inside a transparent shadow margin; tuck part of it off-screen so the
+        // panel itself lands exactly `Gap` pixels from the edge.
+        var tuck = (int)((Shadow - Gap) * screen.Scaling);
+        var align = _flyout.Align;
+
+        // Where along an edge: start, center or end of the screen, or (auto/mouse) under the mouse.
+        int Along(int start, int length, int itemSize, int mouse, bool followMouseOnAuto)
+        {
+            var lo = start - tuck;
+            var hi = start + length - itemSize + tuck;
+            return align switch
+            {
+                "start" => lo,
+                "end" => hi,
+                "center" => start + (length - itemSize) / 2,
+                _ => followMouseOnAuto ? Clamp(mouse - itemSize / 2, lo, hi) : start + (length - itemSize) / 2,
+            };
+        }
 
         int x, y;
         switch (Origin)
         {
             case FlyoutOrigin.Left:
                 x = area.X - tuck;
-                y = area.Y + (area.Height - size.Height) / 2;
+                y = Along(area.Y, area.Height, size.Height, cursor.Y, followMouseOnAuto: false);
                 break;
             case FlyoutOrigin.Right:
                 x = area.Right - size.Width + tuck;
-                y = area.Y + (area.Height - size.Height) / 2;
+                y = Along(area.Y, area.Height, size.Height, cursor.Y, followMouseOnAuto: false);
                 break;
             case FlyoutOrigin.Top:
-                // Pushed against the edge: under the mouse. Opened on purpose: centered on the screen.
-                x = IsPinned
-                    ? area.X + (area.Width - size.Width) / 2
-                    : Clamp(cursor.X - size.Width / 2, area.X, area.Right - size.Width);
+                // Pushed against the edge it follows the mouse; opened on purpose it's centered.
+                x = Along(area.X, area.Width, size.Width, cursor.X, followMouseOnAuto: !IsPinned);
                 y = area.Y - tuck;
                 break;
             default:
@@ -185,6 +215,7 @@ public sealed class FlyoutWindow : Window
                 else { x = area.Right - size.Width + tuck; y = area.Bottom - size.Height + tuck; }
                 break;
         }
+
         // Never let any part of the panel itself go off the working area.
         x = Clamp(x, area.X - tuck, area.Right - size.Width + tuck);
         y = Clamp(y, area.Y - tuck, area.Bottom - size.Height + tuck);
@@ -193,18 +224,40 @@ public sealed class FlyoutWindow : Window
 
     private static int Clamp(int v, int min, int max) => max < min ? min : Math.Clamp(v, min, max);
 
-    /// <summary>Slide + fade, by hand: Window position isn't animatable, so the content moves instead.</summary>
+    // --- Motion --------------------------------------------------------------------------------
+
+    private double SpeedFactor => _flyout.Speed switch { "fast" => 0.6, "relaxed" => 1.6, _ => 1.0 };
+
+    /// <summary>
+    /// Animates in or out by hand (a window's position isn't animatable, so the content moves).
+    /// slide: glides in from its edge. fade: just fades. zoom: grows from its edge.
+    /// spring: slides in and settles with a little overshoot. none: appears instantly.
+    /// </summary>
     private void Animate(bool opening, Action? done = null)
     {
         _animation?.Stop();
-        var distance = Origin switch
+        var style = _flyout.Animation;
+
+        // Grow and slide from the side the flyout is attached to.
+        var (dir, origin) = Origin switch
         {
-            FlyoutOrigin.Left => new Vector(-48, 0),
-            FlyoutOrigin.Right => new Vector(48, 0),
-            FlyoutOrigin.Top => new Vector(0, -40),
-            _ => new Vector(0, 28),
+            FlyoutOrigin.Left => (new Vector(-1, 0), new RelativePoint(0, 0.5, RelativeUnit.Relative)),
+            FlyoutOrigin.Right => (new Vector(1, 0), new RelativePoint(1, 0.5, RelativeUnit.Relative)),
+            FlyoutOrigin.Top => (new Vector(0, -1), new RelativePoint(0.5, 0, RelativeUnit.Relative)),
+            _ => (new Vector(0, 1), new RelativePoint(1, 1, RelativeUnit.Relative)),
         };
-        var length = opening ? OpenLength : CloseLength;
+        _panel.RenderTransformOrigin = origin;
+
+        if (style == "none")
+        {
+            Apply(opening ? 1 : 0, 0, 1);
+            done?.Invoke();
+            return;
+        }
+
+        var baseMs = style switch { "spring" => 420, "zoom" => 220, "fade" => 180, _ => 240 };
+        var length = TimeSpan.FromMilliseconds((opening ? baseMs : baseMs * 0.65) * SpeedFactor);
+        var distance = style == "spring" ? 64 : 48;
         var started = DateTime.UtcNow;
         var from = Opacity;
         var to = opening ? 1.0 : 0.0;
@@ -212,22 +265,55 @@ public sealed class FlyoutWindow : Window
         void Step()
         {
             var t = Math.Clamp((DateTime.UtcNow - started) / length, 0, 1);
-            // Opening decelerates into place; closing accelerates away.
-            var eased = opening ? 1 - Math.Pow(1 - t, 4) : t * t;
-            var progress = from + (to - from) * eased;
-            Opacity = progress;
-            _slide.X = distance.X * (1 - progress);
-            _slide.Y = distance.Y * (1 - progress);
+            var fade = from + (to - from) * (opening ? EaseOut(Math.Min(1, t * 1.6)) : t);
+
+            // How far from "in place" it is: 1 = fully away, 0 = settled. Spring overshoots below 0.
+            double away = opening
+                ? 1 - (style == "spring" ? EaseOutBack(t) : EaseOut(t))
+                : t * t;
+
+            switch (style)
+            {
+                case "fade":
+                    Apply(fade, 0, 1);
+                    break;
+                case "zoom":
+                    Apply(fade, 0, 1 - 0.12 * away);
+                    break;
+                default: // slide, spring
+                    Apply(fade, away * distance, 1);
+                    break;
+            }
+
             if (t >= 1)
             {
                 _animation?.Stop();
+                Apply(to, 0, 1);
                 done?.Invoke();
             }
+        }
+
+        void Apply(double opacity, double offset, double scale)
+        {
+            Opacity = Math.Clamp(opacity, 0, 1);
+            _slide.X = dir.X * offset;
+            _slide.Y = dir.Y * offset;
+            _scale.ScaleX = scale;
+            _scale.ScaleY = scale;
         }
 
         _animation = new DispatcherTimer(TimeSpan.FromMilliseconds(8), DispatcherPriority.Render, (_, _) => Step());
         Step();
         _animation.Start();
+    }
+
+    private static double EaseOut(double t) => 1 - Math.Pow(1 - t, 4);
+
+    /// <summary>Overshoots a little past 1, then settles back.</summary>
+    private static double EaseOutBack(double t)
+    {
+        const double c1 = 1.55, c3 = c1 + 1;
+        return 1 + c3 * Math.Pow(t - 1, 3) + c1 * Math.Pow(t - 1, 2);
     }
 
     private static void SafeRun(Action a, string what)

@@ -33,7 +33,12 @@ public sealed class SettingsStore
     /// <summary>A store that never touches disk (used to render screenshots in CI).</summary>
     public static SettingsStore InMemory(MantelSettings settings) => new(settings, isFirstRun: false) { _inMemory = true };
 
-    public static SettingsStore Load()
+    /// <summary>The app's store, for widgets that save their own content (Notes).</summary>
+    public static SettingsStore? Current { get; private set; }
+
+    public static SettingsStore Load() => Current = LoadFromDisk();
+
+    private static SettingsStore LoadFromDisk()
     {
         try
         {

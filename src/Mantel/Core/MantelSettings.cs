@@ -18,6 +18,12 @@ public sealed class MantelSettings
     /// <summary>"" = the theme's accent, "#RRGGBB" = custom, "amplite" = follow Amplite's accent.</summary>
     public string Accent { get; set; } = "";
 
+    /// <summary>Size of desktop widgets, as a percentage (80–140).</summary>
+    public int WidgetScale { get; set; } = 100;
+
+    /// <summary>How solid widget cards are, as a percentage of the theme's own (20–100).</summary>
+    public int CardOpacity { get; set; } = 100;
+
     public bool AutoUpdate { get; set; } = true;
 
     /// <summary>Also receive prerelease (beta) builds.</summary>
@@ -75,4 +81,36 @@ public sealed class FlyoutSettings
 
     /// <summary>Icon for the tray: "music", "scores", "glance" or "mantel".</summary>
     public string Icon { get; set; } = "mantel";
+
+    // --- Motion ---------------------------------------------------------------------------
+
+    /// <summary>"slide", "fade", "zoom", "spring" or "none".</summary>
+    public string Animation { get; set; } = "slide";
+
+    /// <summary>"fast", "normal" or "relaxed".</summary>
+    public string Speed { get; set; } = "normal";
+
+    // --- Placement ------------------------------------------------------------------------
+
+    /// <summary>Where along its edge it sits: "auto", "start", "center" or "end".
+    /// Auto: side edges center, the top edge follows the mouse.</summary>
+    public string Align { get; set; } = "auto";
+
+    /// <summary>Side-edge flyouts run the full height of the screen (otherwise they fit their content).</summary>
+    public bool FullHeight { get; set; } = true;
+
+    /// <summary>Space between the flyout and the screen edge, in pixels.</summary>
+    public int Gap { get; set; } = 6;
+
+    /// <summary>Which screen a flyout opened by its taskbar icon or shortcut uses: "mouse" or "primary".
+    /// (Pushing against an edge always opens on that screen.)</summary>
+    public string Monitor { get; set; } = "mouse";
+
+    // --- Triggers -------------------------------------------------------------------------
+
+    /// <summary>How long the mouse rests against the edge before it opens: "instant", "short" or "long".</summary>
+    public string EdgeDelay { get; set; } = "short";
+
+    /// <summary>Keyboard shortcut key used with Ctrl+Alt ("M" → Ctrl+Alt+M). Empty = none.</summary>
+    public string Hotkey { get; set; } = "";
 }

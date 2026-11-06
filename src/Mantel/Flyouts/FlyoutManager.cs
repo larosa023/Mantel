@@ -12,7 +12,6 @@ namespace Mantel.Flyouts;
 /// </summary>
 public sealed class FlyoutManager : IDisposable
 {
-    private static readonly TimeSpan EdgeDwell = TimeSpan.FromMilliseconds(180);
     private static readonly TimeSpan LeaveDelay = TimeSpan.FromMilliseconds(450);
 
     private readonly MantelSettings _settings;
@@ -40,6 +39,15 @@ public sealed class FlyoutManager : IDisposable
     }
 
     /// <summary>Tears down and recreates every flyout from settings. Cheap; widgets are created lazily.</summary>
+    private readonly Hotkeys _hotkeys = new();
+
+    private static TimeSpan DwellFor(FlyoutSettings f) => TimeSpan.FromMilliseconds(f.EdgeDelay switch
+    {
+        "instant" => 40,
+        "long" => 500,
+        _ => 180,
+    });
+
     public void Rebuild()
     {
         DisposeHosts();
@@ -67,6 +75,11 @@ public sealed class FlyoutManager : IDisposable
         }
 
         if (_hosts.Any(h => h.Settings.Edge is "left" or "right" or "top")) _edgeTimer.Start();
+
+        // Keyboard shortcuts toggle their flyout, like clicking its taskbar icon.
+        _hotkeys.SetAll(_hosts
+            .Where(h => !string.IsNullOrEmpty(h.Settings.Hotkey))
+            .Select(h => (h.Settings.Hotkey, (Action)(() => ToggleFromTaskbar(h.Window, h.Settings, fromShortcut: true)))));
         else _edgeTimer.Stop();
     }
 
@@ -87,9 +100,15 @@ public sealed class FlyoutManager : IDisposable
         foreach (var h in _hosts) h.Window.CloseFlyout();
     }
 
-    private void ToggleFromTaskbar(FlyoutWindow window, FlyoutSettings settings)
+    private void ToggleFromTaskbar(FlyoutWindow window, FlyoutSettings settings, bool fromShortcut = false)
     {
         if (window.IsOpen) { window.CloseFlyout(); return; }
+        if (fromShortcut)
+        {
+            CloseOthers(window);
+            window.OpenFlyout(OriginFor(settings), Cursor(), pinned: true);
+            return;
+        }
         // Clicking the tray icon first takes focus away from an open flyout, which closes it;
         // don't treat that same click as "open it again".
         if (DateTime.UtcNow - window.ClosedAt < TimeSpan.FromMilliseconds(350)) return;
@@ -149,7 +168,7 @@ public sealed class FlyoutManager : IDisposable
             _edgeSince = DateTime.UtcNow;
             return;
         }
-        if (DateTime.UtcNow - _edgeSince < EdgeDwell) return;
+        if (DateTime.UtcNow - _edgeSince < DwellFor(hit.Settings)) return;
 
         _edgeCandidate = null;
         _outsideSince = DateTime.MaxValue;
@@ -201,5 +220,9 @@ public sealed class FlyoutManager : IDisposable
         _edgeCandidate = null;
     }
 
-    public void Dispose() => DisposeHosts();
+    public void Dispose()
+    {
+        DisposeHosts();
+        _hotkeys.Dispose();
+    }
 }

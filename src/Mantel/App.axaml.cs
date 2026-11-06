@@ -150,7 +150,7 @@ public partial class App : Application
     private void ApplyTheme()
     {
         var settings = _store.Settings;
-        ThemeManager.Apply(this, settings.Theme, settings.Accent);
+        ThemeManager.Apply(this, settings.Theme, settings.Accent, settings.CardOpacity, settings.WidgetScale);
 
         // "Match Amplite's accent": listen to Amplite and recolor live whenever its accent changes.
         var follow = settings.Accent == "amplite";
@@ -178,9 +178,12 @@ public partial class App : Application
     private void OnAppearanceChanged()
     {
         var themeBefore = ThemeManager.Current.Id;
+        var scaleBefore = ThemeManager.WidgetScale;
         ApplyTheme();
-        // Colors update live; fonts, card shapes and the Bare shadow are set when widgets are built.
-        if (ThemeManager.Current.Id != themeBefore) _widgets.ReloadAll();
+        // Colors and opacity update live; fonts, card shapes, the Bare shadow and widget size are
+        // set when widgets are built, so those rebuild them.
+        if (ThemeManager.Current.Id != themeBefore || Math.Abs(ThemeManager.WidgetScale - scaleBefore) > 0.001)
+            _widgets.ReloadAll();
     }
 
     private void Quit()
