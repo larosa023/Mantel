@@ -47,6 +47,9 @@ public sealed class ScoresWidget : IWidget
     private string Site => Opt("site", DefaultSite).TrimEnd('/');
     private bool HideWhenEmpty => Opt("hideWhenEmpty", "false") == "true";
 
+    /// <summary>"web" opens games in the browser; "app" in the installed Fullcourt app.</summary>
+    private string OpenIn => Opt("openIn", "web");
+
     private string Opt(string key, string fallback) =>
         _settings.Options.TryGetValue(key, out var v) && !string.IsNullOrWhiteSpace(v) ? v : fallback;
 
@@ -174,7 +177,7 @@ public sealed class ScoresWidget : IWidget
         {
             var all = new Button { Content = $"+{more} more on Fullcourt" };
             all.Classes.Add("row");
-            all.Click += (_, _) => AppInfo.OpenUrl($"{Site}/?league={League}");
+            all.Click += (_, _) => Mantel.Integrations.FullcourtLauncher.Open($"{Site}/?league={League}", OpenIn);
             _games.Children.Add(all);
         }
 
@@ -266,7 +269,7 @@ public sealed class ScoresWidget : IWidget
 
         var button = new Button { Content = row };
         button.Classes.Add("row");
-        if (g.Url.Length > 0) button.Click += (_, _) => AppInfo.OpenUrl(g.Url);
+        if (g.Url.Length > 0) button.Click += (_, _) => Mantel.Integrations.FullcourtLauncher.Open(g.Url, OpenIn);
         ToolTip.SetTip(button, $"{g.Away.Name} at {g.Home.Name}" + (g.Tv.Length > 0 ? $" · {g.Tv}" : ""));
         return button;
     }
@@ -304,7 +307,36 @@ public sealed class ScoresWidget : IWidget
             OptionsUi.Text(ctx, "teams", "Only these teams", "e.g. BOS, NY", "Team abbreviations, separated by commas. Leave empty for every game."),
             OptionsUi.Choice(ctx, "max", "Games to show", new[] { ("3", "3"), ("4", "4"), ("6", "6"), ("8", "8"), ("12", "12") }, "6"),
             OptionsUi.Toggle(ctx, "hideWhenEmpty", "Hide when there are no games"),
+            OpenInOption(ctx),
             OptionsUi.Text(ctx, "site", "Fullcourt address", DefaultSite, "Change this only if you move Fullcourt to a new host."));
+
+    /// <summary>Website or app, plus a line saying whether the app is actually installed.</summary>
+    private static Control OpenInOption(WidgetOptionsContext ctx)
+    {
+        var choice = OptionsUi.Choice(ctx, "openIn", "Open games in", new[]
+        {
+            ("web", "Website (your browser)"),
+            ("app", "Fullcourt app"),
+        }, "web");
+
+        var installed = Mantel.Integrations.FullcourtLauncher.FindInstalledApp();
+        var status = new TextBlock
+        {
+            TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+            Margin = new Thickness(0, 6, 0, 0),
+            Text = installed is not null
+                ? "Fullcourt app found. Games open in its own window."
+                : "Fullcourt isn't installed as an app yet, so games open in an app-style Edge window. " +
+                  "To install it: open Fullcourt in Edge or Chrome, then choose \"Install Fullcourt\" from the browser's menu (Apps).",
+        };
+        status.Classes.Add("muted");
+
+        var install = new Button { Content = "Open Fullcourt to install it", Margin = new Thickness(0, 8, 0, 0), IsVisible = installed is null };
+        install.Classes.Add("ghost");
+        install.Click += (_, _) => AppInfo.OpenUrl(ctx.Get("site", DefaultSite));
+
+        return new StackPanel { Children = { choice, status, install } };
+    }
 
     public static string? Subtitle(WidgetInstanceSettings s)
     {
