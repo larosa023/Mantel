@@ -48,7 +48,8 @@ public sealed class Sparkline : Control
         if (_count < 2 || w <= 0 || h <= 0) return;
 
         var accent = (this.FindResource("Mantel.Accent") as ISolidColorBrush)?.Color ?? Color.Parse("#E8A15A");
-        var max = Max ?? Enumerable.Range(0, _count).Select(Sample).DefaultIfEmpty(0).Max();
+        // Auto-scaled graphs keep headroom so steady traffic reads as a line, not a solid bar.
+        var max = Max ?? Enumerable.Range(0, _count).Select(Sample).DefaultIfEmpty(0).Max() * 1.6;
         if (max <= 0) max = 1;
 
         var step = w / (_samples.Length - 1);

@@ -13,7 +13,10 @@ Clean, lightweight desktop widgets for Windows. A Rainmeter alternative that loo
 | PC stats | CPU and memory usage. |
 | Countdown | Days, hours and minutes to a date. |
 | Disk space | Free space on each drive. |
-| Network | Live download and upload speed. |
+| Network | Live download and upload speed, with a history graph. |
+| Calendar | This month with today highlighted; flip months, optional week numbers. |
+| Notes | A sticky note you type on right on the desktop; saves itself. |
+| App launcher | Lettered tiles for your favorite apps, folders and files. |
 
 Any widget can be added more than once (a scores widget per league, a clock per time zone), turned on or off from the tray menu or Settings, and configured in Settings. A widget that's off is never created, so it costs no CPU, memory or network. Widgets pause and hide while a full-screen game or video runs.
 
@@ -24,11 +27,11 @@ Panels of widgets that stay out of the way until you want them:
 - **Screen edge:** push the mouse against the left, right or top edge and the flyout slides out. It slides away when you move off it.
 - **Taskbar icon:** a flyout can have its own icon by the clock. Click it and the panel pops up above the taskbar, like Windows' quick settings.
 
-Mantel starts you with three, off until you turn them on in Settings: **Music** (Now Playing with Amplite's EQ, taskbar icon), **Scores** (tonight's games, taskbar icon) and **Glance** (clock, weather and PC stats, right edge). Make your own with **+ New flyout**, and move any widget between the desktop and a flyout with its **Show on** setting. Widgets in a flyout only run while it's open.
+Mantel starts you with three, off until you turn them on in Settings: **Music** (Now Playing with Amplite's EQ, taskbar icon), **Scores** (tonight's games, taskbar icon) and **Glance** (clock, weather and PC stats, right edge). Each flyout has its own animation (slide, fade, zoom, spring or none) and speed, placement (start, center or end of its edge, full height or fitted, gap from the edge, which screen), edge delay and an optional **Ctrl + Alt** keyboard shortcut. Make your own with **+ New flyout**, and move any widget between the desktop and a flyout with its **Show on** setting. Widgets in a flyout only run while it's open.
 
 ## Themes
 
-Nine themes, from small color changes to a completely different look: **Glass** (default), **Smoke**, **Light**, **Paper** (serif numbers), **AMOLED**, **Nord**, **Neon** (glowing edge), **Bare** (no cards, big text on your wallpaper) and **Terminal** (green monospace). Pick the theme's own accent color, any custom color, or **Match Amplite's accent** to follow Amplite's theme live.
+Nineteen themes, from small color changes to a completely different look: **Glass** (default), **Smoke**, **Light**, **Paper**, **AMOLED**, **Nord**, **Neon**, **Bare** (no cards), **Terminal**, **Catppuccin**, **Dracula**, **Tokyo Night**, **Gruvbox**, **Rosé Pine**, **Frost**, **Synthwave**, **Mono**, **Pill** and **Solarized Light**. Widget size and card opacity are adjustable for all of them. Pick the theme's own accent color, any custom color, or **Match Amplite's accent** to follow Amplite's theme live.
 
 ## Using it
 
