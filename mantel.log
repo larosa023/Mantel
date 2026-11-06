@@ -1,0 +1,6 @@
+2026-11-06 14:06:58 ERROR Weather fetch failed. HttpRequestException: Response status code does not indicate success: 503 (Service Unavailable).
+   at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at System.Net.Http.HttpClient.GetStringAsyncCore(HttpRequestMessage request, CancellationToken cancellationToken)
+   at Mantel.Widgets.Weather.WeatherClient.GetAsync(Double lat, Double lon, Boolean fahrenheit, CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Weather\WeatherClient.cs:line 53
+   at Mantel.Widgets.Weather.WeatherWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Weather\WeatherWidget.cs:line 116
+2026-11-06 14:08:04 INFO Updates unavailable: No VelopackLocator has been set. Either call VelopackApp.Build() or provide IVelopackLocator as a method parameter.
