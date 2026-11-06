@@ -172,7 +172,10 @@ public sealed class FlyoutWindow : Window
                 y = area.Y + (area.Height - size.Height) / 2;
                 break;
             case FlyoutOrigin.Top:
-                x = Clamp(cursor.X - size.Width / 2, area.X, area.Right - size.Width);
+                // Pushed against the edge: under the mouse. Opened on purpose: centered on the screen.
+                x = IsPinned
+                    ? area.X + (area.Width - size.Width) / 2
+                    : Clamp(cursor.X - size.Width / 2, area.X, area.Right - size.Width);
                 y = area.Y - tuck;
                 break;
             default:

@@ -56,7 +56,8 @@ public sealed class FlyoutManager : IDisposable
                 {
                     tray = new TrayIcon { Icon = TrayHost.LoadIcon(f.Icon), ToolTipText = $"Mantel — {f.Name}" };
                     var w = window;
-                    tray.Clicked += (_, _) => ToggleFromTaskbar(w);
+                    var settings = f;
+                    tray.Clicked += (_, _) => ToggleFromTaskbar(w, settings);
                     TrayHost.Icons.Add(tray);
                 }
 
@@ -74,13 +75,7 @@ public sealed class FlyoutManager : IDisposable
     {
         var host = _hosts.FirstOrDefault(h => h.Settings.Id == flyoutId);
         if (host is null) return;
-        var origin = host.Settings.Edge switch
-        {
-            "left" => FlyoutOrigin.Left,
-            "right" => FlyoutOrigin.Right,
-            "top" => FlyoutOrigin.Top,
-            _ => FlyoutOrigin.Taskbar,
-        };
+        var origin = OriginFor(host.Settings);
         CloseOthers(host.Window);
         // Pinned: opened on purpose (from Settings or the tray menu), so it stays until clicked away
         // instead of sliding shut because the mouse isn't on it.
@@ -92,15 +87,26 @@ public sealed class FlyoutManager : IDisposable
         foreach (var h in _hosts) h.Window.CloseFlyout();
     }
 
-    private void ToggleFromTaskbar(FlyoutWindow window)
+    private void ToggleFromTaskbar(FlyoutWindow window, FlyoutSettings settings)
     {
         if (window.IsOpen) { window.CloseFlyout(); return; }
         // Clicking the tray icon first takes focus away from an open flyout, which closes it;
         // don't treat that same click as "open it again".
         if (DateTime.UtcNow - window.ClosedAt < TimeSpan.FromMilliseconds(350)) return;
         CloseOthers(window);
-        window.OpenFlyout(FlyoutOrigin.Taskbar, Cursor());
+        // The flyout's screen edge decides where it appears, however it's opened. With no edge set,
+        // it pops up above the clock like Windows' own flyouts.
+        var origin = OriginFor(settings);
+        window.OpenFlyout(origin, Cursor(), pinned: origin != FlyoutOrigin.Taskbar);
     }
+
+    private static FlyoutOrigin OriginFor(FlyoutSettings f) => f.Edge switch
+    {
+        "left" => FlyoutOrigin.Left,
+        "right" => FlyoutOrigin.Right,
+        "top" => FlyoutOrigin.Top,
+        _ => FlyoutOrigin.Taskbar,
+    };
 
     private void CloseOthers(FlyoutWindow keep)
     {
