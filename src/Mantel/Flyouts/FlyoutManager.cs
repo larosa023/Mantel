@@ -75,12 +75,12 @@ public sealed class FlyoutManager : IDisposable
         }
 
         if (_hosts.Any(h => h.Settings.Edge is "left" or "right" or "top")) _edgeTimer.Start();
+        else _edgeTimer.Stop();
 
         // Keyboard shortcuts toggle their flyout, like clicking its taskbar icon.
         _hotkeys.SetAll(_hosts
             .Where(h => !string.IsNullOrEmpty(h.Settings.Hotkey))
             .Select(h => (h.Settings.Hotkey, (Action)(() => ToggleFromTaskbar(h.Window, h.Settings, fromShortcut: true)))));
-        else _edgeTimer.Stop();
     }
 
     /// <summary>Opens a flyout from code (e.g. Settings' "Try it" button).</summary>
