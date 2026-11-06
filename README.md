@@ -7,15 +7,28 @@ Clean, lightweight desktop widgets for Windows. A Rainmeter alternative that loo
 | Widget | What it shows |
 | --- | --- |
 | Clock | Time and date. Add more for world clocks, each with its own time zone and label. |
-| Now Playing | Track, artist, album art and progress from Spotify, browsers and most players, with previous/play/next. Hides when nothing's playing. |
+| Now Playing | Track, art and progress with previous/play/next. With [Amplite](https://github.com/larosa023/amplite) running it also switches **EQ presets**, changes volume on scroll and seeks on click. Otherwise it works with Spotify, browsers and most players. |
+| Scores | Live NBA, WNBA and college games from [Fullcourt](https://github.com/larosa023/fullcourt). Click a game to open it there. |
 | Weather | Current conditions, high/low, feels-like, wind and a 3-day forecast (Open-Meteo, no API key). |
 | PC stats | CPU and memory usage. |
-| Countdown | Days, hours and minutes to a date. Add as many as you like. |
+| Countdown | Days, hours and minutes to a date. |
 | Disk space | Free space on each drive. |
 | Network | Live download and upload speed. |
-| Fullcourt scores | Planned |
 
-Every widget can be turned on or off from the tray menu or Settings, and configurable widgets have their options in Settings. A widget that's off is never created, so it costs no CPU, memory or network. Widgets also pause and hide while a full-screen game or video is running.
+Any widget can be added more than once (a scores widget per league, a clock per time zone), turned on or off from the tray menu or Settings, and configured in Settings. A widget that's off is never created, so it costs no CPU, memory or network. Widgets pause and hide while a full-screen game or video runs.
+
+## Flyouts
+
+Panels of widgets that stay out of the way until you want them:
+
+- **Screen edge:** push the mouse against the left, right or top edge and the flyout slides out. It slides away when you move off it.
+- **Taskbar icon:** a flyout can have its own icon by the clock. Click it and the panel pops up above the taskbar, like Windows' quick settings.
+
+Mantel starts you with three, off until you turn them on in Settings: **Music** (Now Playing with Amplite's EQ, taskbar icon), **Scores** (tonight's games, taskbar icon) and **Glance** (clock, weather and PC stats, right edge). Make your own with **+ New flyout**, and move any widget between the desktop and a flyout with its **Show on** setting. Widgets in a flyout only run while it's open.
+
+## Themes
+
+Nine themes, from small color changes to a completely different look: **Glass** (default), **Smoke**, **Light**, **Paper** (serif numbers), **AMOLED**, **Nord**, **Neon** (glowing edge), **Bare** (no cards, big text on your wallpaper) and **Terminal** (green monospace). Pick the theme's own accent color, any custom color, or **Match Amplite's accent** to follow Amplite's theme live.
 
 ## Using it
 
