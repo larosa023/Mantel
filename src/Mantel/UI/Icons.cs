@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Media;
+using Path = Avalonia.Controls.Shapes.Path;
 
 namespace Mantel.UI;
 
