@@ -1,56 +1,101 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!-- Mantel design language: dark glass cards, warm amber accent. -->
+  <!-- Mantel design language. Every value here comes from the active theme
+       (ThemeManager sets these resources at runtime); these defaults are Glass. -->
+  <Styles.Resources>
+    <SolidColorBrush x:Key="Mantel.CardBackground" Color="#E0141519" />
+    <SolidColorBrush x:Key="Mantel.CardBorder" Color="#22FFFFFF" />
+    <Thickness x:Key="Mantel.CardBorderThickness">1</Thickness>
+    <CornerRadius x:Key="Mantel.CardRadius">16</CornerRadius>
+    <Thickness x:Key="Mantel.CardPadding">18,14</Thickness>
+    <BoxShadows x:Key="Mantel.CardShadow">0 6 24 0 #59000000</BoxShadows>
+    <SolidColorBrush x:Key="Mantel.Accent" Color="#E8A15A" />
+    <SolidColorBrush x:Key="Mantel.AccentSoft" Color="#B3E8A15A" />
+    <SolidColorBrush x:Key="Mantel.AccentText" Color="#141519" />
+    <SolidColorBrush x:Key="Mantel.Text" Color="#F0ECE4" />
+    <SolidColorBrush x:Key="Mantel.TextMuted" Color="#A8A49D" />
+    <SolidColorBrush x:Key="Mantel.TextLabel" Color="#8C8A86" />
+    <SolidColorBrush x:Key="Mantel.Track" Color="#1FFFFFFF" />
+    <SolidColorBrush x:Key="Mantel.Divider" Color="#1AFFFFFF" />
+    <FontWeight x:Key="Mantel.BigWeight">Light</FontWeight>
+    <x:Double x:Key="Mantel.BigSize">44</x:Double>
+  </Styles.Resources>
 
   <Style Selector="Border.card">
-    <Setter Property="Background" Value="#E0141519" />
-    <Setter Property="BorderBrush" Value="#22FFFFFF" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="16" />
-    <Setter Property="Padding" Value="18,14" />
+    <Setter Property="Background" Value="{DynamicResource Mantel.CardBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Mantel.CardBorder}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Mantel.CardBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Mantel.CardRadius}" />
+    <Setter Property="Padding" Value="{DynamicResource Mantel.CardPadding}" />
     <!-- Room for the shadow inside the transparent window. -->
     <Setter Property="Margin" Value="12" />
-    <Setter Property="BoxShadow" Value="0 6 24 0 #59000000" />
+    <Setter Property="BoxShadow" Value="{DynamicResource Mantel.CardShadow}" />
   </Style>
 
-  <!-- Unlocked: an amber outline shows the widgets can be dragged. -->
+  <!-- Unlocked: an accent outline shows the widgets can be dragged (dashed-looking on Bare). -->
   <Style Selector="Border.card.unlocked">
-    <Setter Property="BorderBrush" Value="#B3E8A15A" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Mantel.AccentSoft}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <!-- Widget windows and flyouts carry the "widget" class; this keeps theme text colors out of Settings. -->
+  <Style Selector="Window.widget TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.Text}" />
   </Style>
 
   <Style Selector="TextBlock.big">
-    <Setter Property="FontSize" Value="44" />
-    <Setter Property="FontWeight" Value="Light" />
-    <Setter Property="Foreground" Value="#F0ECE4" />
-    <Setter Property="LineHeight" Value="48" />
+    <Setter Property="FontSize" Value="{DynamicResource Mantel.BigSize}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Mantel.BigWeight}" />
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.Text}" />
+  </Style>
+
+  <Style Selector="TextBlock.title">
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.Text}" />
+  </Style>
+
+  <Style Selector="TextBlock.strong">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.Text}" />
+  </Style>
+
+  <Style Selector="TextBlock.stat">
+    <Setter Property="FontSize" Value="22" />
+    <Setter Property="FontWeight" Value="{DynamicResource Mantel.BigWeight}" />
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.Text}" />
   </Style>
 
   <Style Selector="TextBlock.label">
     <Setter Property="FontSize" Value="11" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="LetterSpacing" Value="1" />
-    <Setter Property="Foreground" Value="#8C8A86" />
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.TextLabel}" />
+  </Style>
+
+  <Style Selector="TextBlock.accent">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.Accent}" />
   </Style>
 
   <Style Selector="TextBlock.value">
     <Setter Property="FontSize" Value="14" />
-    <Setter Property="Foreground" Value="#F0ECE4" />
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.Text}" />
   </Style>
 
   <Style Selector="TextBlock.muted">
     <Setter Property="FontSize" Value="13" />
-    <Setter Property="Foreground" Value="#A8A49D" />
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.TextMuted}" />
   </Style>
 
   <Style Selector="Border.track">
-    <Setter Property="Background" Value="#1FFFFFFF" />
+    <Setter Property="Background" Value="{DynamicResource Mantel.Track}" />
     <Setter Property="CornerRadius" Value="3" />
     <Setter Property="Height" Value="6" />
   </Style>
 
   <Style Selector="Border.fill">
-    <Setter Property="Background" Value="#E8A15A" />
+    <Setter Property="Background" Value="{DynamicResource Mantel.Accent}" />
     <Setter Property="CornerRadius" Value="3" />
     <Setter Property="Height" Value="6" />
     <Setter Property="HorizontalAlignment" Value="Left" />
@@ -60,6 +105,27 @@
     <Setter Property="Background" Value="#E8665A" />
   </Style>
 
+  <Style Selector="Border.divider">
+    <Setter Property="Background" Value="{DynamicResource Mantel.Divider}" />
+    <Setter Property="Height" Value="1" />
+  </Style>
+
+  <Style Selector="Border.placeholder">
+    <Setter Property="Background" Value="{DynamicResource Mantel.Track}" />
+  </Style>
+
+  <Style Selector="Border.pill">
+    <Setter Property="Background" Value="{DynamicResource Mantel.Accent}" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="6,1" />
+  </Style>
+  <Style Selector="Border.pill > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="1" />
+  </Style>
+
   <!-- Round, borderless icon buttons (media controls) -->
   <Style Selector="Button.icon">
     <Setter Property="Background" Value="Transparent" />
@@ -67,14 +133,72 @@
     <Setter Property="CornerRadius" Value="16" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
+  <Style Selector="Button.icon Path">
+    <Setter Property="Fill" Value="{DynamicResource Mantel.Text}" />
+  </Style>
   <Style Selector="Button.icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="#1FFFFFFF" />
+    <Setter Property="Background" Value="{DynamicResource Mantel.Track}" />
   </Style>
   <Style Selector="Button.icon:pressed /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="#33FFFFFF" />
+    <Setter Property="Background" Value="{DynamicResource Mantel.Divider}" />
   </Style>
 
-  <!-- Settings window -->
+  <!-- Small text button inside widgets (EQ preset picker) -->
+  <Style Selector="Button.chip">
+    <Setter Property="Background" Value="{DynamicResource Mantel.Track}" />
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.Text}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="10,3" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.chip.on">
+    <Setter Property="Background" Value="{DynamicResource Mantel.Accent}" />
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.chip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Mantel.Divider}" />
+  </Style>
+  <Style Selector="Button.chip.on:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Mantel.AccentSoft}" />
+  </Style>
+
+  <!-- Clickable game rows in the scores widget -->
+  <Style Selector="Button.row">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="6,4" />
+    <Setter Property="Margin" Value="-6,0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.row:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Mantel.Track}" />
+  </Style>
+
+  <!-- ===================== Settings window (its own fixed dark look) ===================== -->
+  <Style Selector="Window.settings TextBlock">
+    <Setter Property="Foreground" Value="#F0ECE4" />
+  </Style>
+  <Style Selector="Window.settings TextBlock.muted">
+    <Setter Property="Foreground" Value="#A8A49D" />
+  </Style>
+  <Style Selector="Window.settings TextBlock.section">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="1" />
+    <Setter Property="Foreground" Value="#E8A15A" />
+    <Setter Property="Margin" Value="0,18,0,6" />
+  </Style>
+
+  <Style Selector="Button.accent">
+    <Setter Property="Background" Value="#E8A15A" />
+    <Setter Property="Foreground" Value="#141519" />
+  </Style>
+
   <Style Selector="Expander">
     <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -88,17 +212,19 @@
     <Setter Property="Padding" Value="4,2" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
-  <Style Selector="TextBlock.section">
-    <Setter Property="FontSize" Value="12" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-    <Setter Property="LetterSpacing" Value="1" />
-    <Setter Property="Foreground" Value="#E8A15A" />
-    <Setter Property="Margin" Value="0,18,0,6" />
-  </Style>
 
-  <Style Selector="Button.accent">
-    <Setter Property="Background" Value="#E8A15A" />
-    <Setter Property="Foreground" Value="#141519" />
+  <!-- Theme picker swatches -->
+  <Style Selector="Button.swatch">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Margin" Value="0,0,8,8" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.swatch.selected">
+    <Setter Property="BorderBrush" Value="#E8A15A" />
   </Style>
 
 </Styles>

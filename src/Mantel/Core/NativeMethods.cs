@@ -59,6 +59,28 @@ internal static class NativeMethods
         return TimeSpan.FromMilliseconds(idleMs);
     }
 
+    // --- Cursor (edge flyouts) ----------------------------------------------
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT
+    {
+        public int X;
+        public int Y;
+    }
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetCursorPos(out POINT point);
+
+    public const int VK_LBUTTON = 0x01;
+    public const int VK_RBUTTON = 0x02;
+
+    [DllImport("user32.dll")]
+    public static extern short GetAsyncKeyState(int key);
+
+    public static bool IsMouseButtonDown() =>
+        (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 || (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+
     // --- Full-screen detection --------------------------------------------
 
     // QUERY_USER_NOTIFICATION_STATE

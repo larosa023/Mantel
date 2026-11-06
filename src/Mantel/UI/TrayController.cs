@@ -33,9 +33,9 @@ public sealed class TrayController
         };
         _tray.Clicked += (_, _) => _openSettings();
 
-        TrayIcon.SetIcons(app, new TrayIcons { _tray });
+        TrayHost.Icons.Add(_tray);
 
-        _widgets.Changed += Sync;
+        _widgets.Changed += Rebuild;
         _widgets.StructureChanged += Rebuild;
         _updates.StateChanged += Sync;
         Sync();
@@ -54,7 +54,7 @@ public sealed class TrayController
         var widgetsMenu = new NativeMenu();
         foreach (var d in WidgetRegistry.All)
         {
-            var instances = _widgets.Instances.Where(i => i.Type == d.Type).ToList();
+            var instances = _widgets.Instances.Where(i => i.Type == d.Type && i.FlyoutId is null).ToList();
             foreach (var instance in instances)
             {
                 var id = instance.Id;
@@ -84,6 +84,20 @@ public sealed class TrayController
 
         var menu = new NativeMenu();
         menu.Items.Add(new NativeMenuItem("Widgets") { Menu = widgetsMenu });
+
+        var flyouts = _widgets.FlyoutList.Where(f => f.Enabled).ToList();
+        if (flyouts.Count > 0)
+        {
+            var flyoutMenu = new NativeMenu();
+            foreach (var f in flyouts)
+            {
+                var id = f.Id;
+                var item = new NativeMenuItem(f.Name);
+                item.Click += (_, _) => _widgets.Flyouts.Open(id);
+                flyoutMenu.Items.Add(item);
+            }
+            menu.Items.Add(new NativeMenuItem("Open flyout") { Menu = flyoutMenu });
+        }
         menu.Items.Add(_lockItem);
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(settings);

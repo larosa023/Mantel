@@ -42,16 +42,9 @@ public sealed class WidgetWindow : Window
         SizeToContent = SizeToContent.WidthAndHeight;
         WindowStartupLocation = WindowStartupLocation.Manual;
 
-        var view = widget.View;
-        _card = new Border { Child = view, ContextMenu = menu, IsVisible = view.IsVisible };
-        _card.Classes.Add("card");
+        Mantel.UI.WidgetCard.ApplyFont(this);
+        _card = Mantel.UI.WidgetCard.Create(widget.View, menu);
         Content = _card;
-
-        // A widget hides its whole card by hiding its view (e.g. Now Playing when idle).
-        view.PropertyChanged += (_, e) =>
-        {
-            if (e.Property == IsVisibleProperty) _card.IsVisible = view.IsVisible;
-        };
 
         SetLocked(locked);
 

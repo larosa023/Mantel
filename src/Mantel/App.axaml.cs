@@ -3,6 +3,8 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Mantel.Core;
+using Mantel.Integrations;
+using Mantel.Theme;
 using Mantel.UI;
 using Mantel.Updates;
 
@@ -58,6 +60,10 @@ public partial class App : Application
 
         if (WidgetRegistry.EnsureInstances(settings, _store.IsFirstRun)) _store.Save();
 
+        TrayHost.Attach(this);
+        try { ApplyTheme(); }
+        catch (Exception ex) { Log.Error("Theme failed to apply; using the default look.", ex); }
+
         // The updater starts first and on its own, so even if something below fails,
         // Mantel can still fetch the release that fixes it.
         _updates = new UpdateService(settings);
@@ -106,9 +112,49 @@ public partial class App : Application
             open.Activate();
             return;
         }
-        _settingsWindow = new SettingsWindow(_store, _widgets, _updates);
+        _settingsWindow = new SettingsWindow(_store, _widgets, _updates, OnAppearanceChanged);
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         _settingsWindow.Show();
+    }
+
+    // --- Theme and accent ------------------------------------------------------------------
+
+    private bool _followingAmplite;
+
+    private void ApplyTheme()
+    {
+        var settings = _store.Settings;
+        ThemeManager.Apply(this, settings.Theme, settings.Accent);
+
+        // "Match Amplite's accent": listen to Amplite and recolor live whenever its accent changes.
+        var follow = settings.Accent == "amplite";
+        if (follow && !_followingAmplite)
+        {
+            _followingAmplite = true;
+            AmpliteClient.Shared.Changed += OnAmpliteAccent;
+            AmpliteClient.Shared.Acquire();
+            OnAmpliteAccent();
+        }
+        else if (!follow && _followingAmplite)
+        {
+            _followingAmplite = false;
+            AmpliteClient.Shared.Changed -= OnAmpliteAccent;
+            AmpliteClient.Shared.Release();
+        }
+    }
+
+    private void OnAmpliteAccent()
+    {
+        if (ThemeManager.ParseAccent(AmpliteClient.Shared.State?.Accent) is { } color)
+            ThemeManager.SetAccent(this, color);
+    }
+
+    private void OnAppearanceChanged()
+    {
+        var themeBefore = ThemeManager.Current.Id;
+        ApplyTheme();
+        // Colors update live; fonts, card shapes and the Bare shadow are set when widgets are built.
+        if (ThemeManager.Current.Id != themeBefore) _widgets.ReloadAll();
     }
 
     private void Quit()

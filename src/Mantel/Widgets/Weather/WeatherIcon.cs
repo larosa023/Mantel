@@ -13,11 +13,12 @@ namespace Mantel.Widgets.Weather;
 public static class WeatherIcon
 {
     private static readonly IBrush SunBrush = Brush.Parse("#F2B84B");
-    private static readonly IBrush MoonBrush = Brush.Parse("#D9D3C7");
-    private static readonly IBrush CloudLight = Brush.Parse("#D5D8DD");
-    private static readonly IBrush CloudDark = Brush.Parse("#9AA0A8");
+    private static IBrush MoonBrush => Mantel.Theme.ThemeManager.Current.IsLight ? Brush.Parse("#A89F8F") : Brush.Parse("#D9D3C7");
+    // Clouds get darker on light themes so they don't vanish into a white card.
+    private static IBrush CloudLight => Mantel.Theme.ThemeManager.Current.IsLight ? Brush.Parse("#B5BBC4") : Brush.Parse("#D5D8DD");
+    private static IBrush CloudDark => Mantel.Theme.ThemeManager.Current.IsLight ? Brush.Parse("#858C96") : Brush.Parse("#9AA0A8");
     private static readonly IBrush RainBrush = Brush.Parse("#6FA8E8");
-    private static readonly IBrush SnowBrush = Brush.Parse("#EEF2F7");
+    private static IBrush SnowBrush => Mantel.Theme.ThemeManager.Current.IsLight ? Brush.Parse("#9DB4CF") : Brush.Parse("#EEF2F7");
     private static readonly IBrush BoltBrush = Brush.Parse("#F2C94C");
 
     public static Control Create(WeatherKind kind, bool isDay, double size)

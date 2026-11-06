@@ -47,8 +47,7 @@ public sealed class WeatherWidget : IWidget
     private Control BuildView()
     {
         _temp.Classes.Add("big");
-        _condition.FontSize = 14;
-        _condition.Foreground = Brush.Parse("#F0ECE4");
+        _condition.Classes.Add("strong");
         _range.Classes.Add("muted");
         _place.Classes.Add("label");
 
@@ -68,7 +67,8 @@ public sealed class WeatherWidget : IWidget
         _icon.Margin = new(0, 0, 10, 0);
         _icon.VerticalAlignment = VerticalAlignment.Center;
 
-        var divider = new Border { Height = 1, Background = Brush.Parse("#1AFFFFFF"), Margin = new(0, 12, 0, 10) };
+        var divider = new Border { Margin = new(0, 12, 0, 10) };
+        divider.Classes.Add("divider");
         _forecastRow.Children.Add(divider);
         _forecastRow.Children.Add(_days);
 

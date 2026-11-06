@@ -39,9 +39,7 @@ public sealed class NetworkWidget : TimedWidget
     {
         var title = new TextBlock { Text = label };
         title.Classes.Add("label");
-        value.FontSize = 22;
-        value.FontWeight = Avalonia.Media.FontWeight.Light;
-        value.Foreground = Avalonia.Media.Brush.Parse("#F0ECE4");
+        value.Classes.Add("stat");
         var stack = new StackPanel { Spacing = 2, Children = { title, value }, HorizontalAlignment = HorizontalAlignment.Left };
         Grid.SetColumn(stack, column);
         return stack;
