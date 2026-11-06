@@ -22,6 +22,7 @@ public sealed class WidgetWindow : Window
     private readonly DispatcherTimer _settle;
     private bool _locked;
     private bool _snapping;
+    private bool _dragged;
 
     /// <summary>Raised (debounced) after the user drags the widget somewhere new.</summary>
     public event Action? Moved;
@@ -72,9 +73,14 @@ public sealed class WidgetWindow : Window
     /// <summary>Restores the saved position, or picks one if it's missing or off-screen.</summary>
     public void PlaceOnScreen(int fallbackIndex)
     {
-        if (_settings.X is int x && _settings.Y is int y && Screens.All.Any(s => s.Bounds.Contains(new PixelPoint(x, y))))
+        // A widget snapped to a screen edge has its window (with the card's transparent shadow margin)
+        // a few pixels off-screen, so judge by where the card itself is, with some slack.
+        if (_settings.X is int x && _settings.Y is int y &&
+            Screens.All.Any(s => NearScreen(s.Bounds, x + 40, y + 40)))
         {
+            _snapping = true; // a restore, not a drag: don't snap or re-save it
             Position = new PixelPoint(x, y);
+            _snapping = false;
             return;
         }
 
@@ -90,6 +96,11 @@ public sealed class WidgetWindow : Window
     /// <summary>After a drag settles: snap to the grid and screen edges, then save.</summary>
     private void OnSettled()
     {
+        // Only the user's own drags snap and save; Mantel moving a widget (restoring it after a
+        // theme change, say) leaves its saved spot alone.
+        if (!_dragged) return;
+        _dragged = false;
+
         if (_snapEnabled() && !_locked)
         {
             var snapped = Snap(Position);
@@ -105,6 +116,9 @@ public sealed class WidgetWindow : Window
         _settings.Y = Position.Y;
         Moved?.Invoke();
     }
+
+    private static bool NearScreen(PixelRect b, int px, int py) =>
+        px >= b.X - 80 && px <= b.Right + 80 && py >= b.Y - 80 && py <= b.Bottom + 80;
 
     private PixelPoint Snap(PixelPoint p)
     {
@@ -136,6 +150,7 @@ public sealed class WidgetWindow : Window
         // Let buttons inside widgets (play/pause) work even when unlocked.
         if (e.Source is Visual v && (v.FindAncestorOfType<Button>(includeSelf: true) is not null ||
                                      v.FindAncestorOfType<TextBox>(includeSelf: true) is not null)) return;
+        _dragged = true;
         BeginMoveDrag(e);
     }
 

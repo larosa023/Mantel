@@ -194,6 +194,16 @@ public static class ThemeManager
         r["Mantel.Accent"] = new SolidColorBrush(accent);
         r["Mantel.AccentSoft"] = new SolidColorBrush(Color.FromArgb(0xB3, accent.R, accent.G, accent.B));
         r["Mantel.AccentText"] = new SolidColorBrush(Contrast(accent));
+        // Toggle switches: the knob sits on the accent when on, so it takes the accent's contrast color
+        // (a white knob vanished on Mono's white accent).
+        var knob = new SolidColorBrush(Contrast(accent));
+        r["ToggleSwitchKnobFillOn"] = knob;
+        r["ToggleSwitchKnobFillOnPointerOver"] = knob;
+        r["ToggleSwitchKnobFillOnPressed"] = knob;
+        // Off: a clearer outline and knob than Fluent's faint default.
+        r["ToggleSwitchStrokeOff"] = new SolidColorBrush(Color.Parse("#B3FFFFFF"));
+        r["ToggleSwitchKnobFillOff"] = new SolidColorBrush(Color.Parse("#E6FFFFFF"));
+
         // Fluent's own controls (toggle switches, sliders, focus rings) follow the accent too.
         r["SystemAccentColor"] = accent;
         r["SystemAccentColorLight1"] = Shift(accent, 0.15);
