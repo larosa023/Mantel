@@ -1,6 +1,6 @@
 name: Release
 
-# Push a tag to ship:
+# Ship by pushing a tag, or by creating a release on GitHub (which creates the tag):
 #   git tag v0.1.0        && git push origin v0.1.0         -> stable
 #   git tag v0.2.0-beta.1 && git push origin v0.2.0-beta.1  -> beta channel (prerelease)
 on:
@@ -57,9 +57,10 @@ jobs:
           --packDir publish --mainExe Mantel.exe --packTitle Mantel
           --icon src/Mantel/Assets/mantel.ico --channel ${{ steps.v.outputs.channel }}
 
+      # --merge: works whether the release was made here or by hand on GitHub first.
       - name: Upload to GitHub Releases
         run: >
           vpk upload github --repoUrl ${{ github.server_url }}/${{ github.repository }}
-          --publish --releaseName "Mantel ${{ steps.v.outputs.version }}"
+          --publish --merge --releaseName "Mantel ${{ steps.v.outputs.version }}"
           --tag ${{ github.ref_name }} --channel ${{ steps.v.outputs.channel }}
           --token ${{ secrets.GITHUB_TOKEN }} ${{ steps.v.outputs.pre }}
