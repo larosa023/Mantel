@@ -6,6 +6,12 @@ public sealed class MantelSettings
     /// <summary>When locked, widgets can't be dragged.</summary>
     public bool Locked { get; set; }
 
+    /// <summary>Snap dragged widgets to an 8px grid and to screen edges.</summary>
+    public bool SnapToGrid { get; set; } = true;
+
+    /// <summary>Hide widgets (and pause their work) while a full-screen app or game runs.</summary>
+    public bool HideOnFullscreen { get; set; } = true;
+
     public bool AutoUpdate { get; set; } = true;
 
     /// <summary>Also receive prerelease (beta) builds.</summary>

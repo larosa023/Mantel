@@ -14,9 +14,9 @@ public sealed class TrayController
     private readonly Action _openSettings;
     private readonly Action _quit;
     private readonly TrayIcon _tray;
-    private readonly NativeMenuItem _lockItem = new() { ToggleType = NativeMenuItemToggleType.CheckBox };
-    private readonly NativeMenuItem _updateItem = new();
     private readonly Dictionary<string, NativeMenuItem> _widgetItems = new();
+    private NativeMenuItem _lockItem = null!;
+    private NativeMenuItem _updateItem = null!;
 
     public TrayController(Application app, WidgetManager widgets, UpdateService updates, Action openSettings, Action quit)
     {
@@ -36,27 +36,40 @@ public sealed class TrayController
         TrayIcon.SetIcons(app, new TrayIcons { _tray });
 
         _widgets.Changed += Sync;
+        _widgets.StructureChanged += Rebuild;
         _updates.StateChanged += Sync;
+        Sync();
+    }
+
+    /// <summary>Widgets were added or removed: rebuild the menu with fresh items.</summary>
+    private void Rebuild()
+    {
+        _tray.Menu = BuildMenu();
         Sync();
     }
 
     private NativeMenu BuildMenu()
     {
+        _widgetItems.Clear();
         var widgetsMenu = new NativeMenu();
-        foreach (var instance in _widgets.Instances)
+        foreach (var d in WidgetRegistry.All)
         {
-            var d = WidgetRegistry.Find(instance.Type);
-            if (d is null) continue;
-            var id = instance.Id;
-            var item = new NativeMenuItem(d.Name) { ToggleType = NativeMenuItemToggleType.CheckBox };
-            item.Click += (_, _) => _widgets.SetEnabled(id, !_widgets.IsEnabled(id));
-            _widgetItems[id] = item;
-            widgetsMenu.Items.Add(item);
+            var instances = _widgets.Instances.Where(i => i.Type == d.Type).ToList();
+            foreach (var instance in instances)
+            {
+                var id = instance.Id;
+                var label = instances.Count > 1 && d.Subtitle?.Invoke(instance) is { } sub ? $"{d.Name} — {sub}" : d.Name;
+                var item = new NativeMenuItem(label) { ToggleType = NativeMenuItemToggleType.CheckBox };
+                item.Click += (_, _) => _widgets.SetEnabled(id, !_widgets.IsEnabled(id));
+                _widgetItems[id] = item;
+                widgetsMenu.Items.Add(item);
+            }
         }
 
-        _lockItem.Header = "Lock widgets";
+        _lockItem = new NativeMenuItem("Lock widgets") { ToggleType = NativeMenuItemToggleType.CheckBox };
         _lockItem.Click += (_, _) => _widgets.SetLocked(!_widgets.Locked);
 
+        _updateItem = new NativeMenuItem("Check for updates");
         _updateItem.Click += async (_, _) =>
         {
             if (_updates.State == UpdateState.ReadyToRestart) _updates.RestartAndApply();

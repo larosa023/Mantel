@@ -59,6 +59,16 @@ internal static class NativeMethods
         return TimeSpan.FromMilliseconds(idleMs);
     }
 
+    // --- Full-screen detection --------------------------------------------
+
+    // QUERY_USER_NOTIFICATION_STATE
+    public const int QUNS_BUSY = 2;                    // a full-screen app is running
+    public const int QUNS_RUNNING_D3D_FULL_SCREEN = 3; // a full-screen game
+    public const int QUNS_PRESENTATION_MODE = 4;
+
+    [DllImport("shell32.dll")]
+    public static extern int SHQueryUserNotificationState(out int state);
+
     // --- System stats -----------------------------------------------------
 
     [StructLayout(LayoutKind.Sequential)]

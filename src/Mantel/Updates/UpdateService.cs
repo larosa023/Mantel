@@ -111,7 +111,7 @@ public sealed class UpdateService
         catch (Exception ex)
         {
             // Offline, GitHub down, rate-limited... try again next interval. Never bother the user.
-            Trace.WriteLine($"Mantel: update check failed. {ex.Message}");
+            Log.Error("Update check failed.", ex);
             LastError = ex.Message;
             SetState(UpdateState.Failed);
         }
@@ -136,7 +136,7 @@ public sealed class UpdateService
     {
         if (_pendingManager is null || _pending is null) return;
         try { _pendingManager.WaitExitThenApplyUpdates(_pending.TargetFullRelease, silent: true, restart: false); }
-        catch (Exception ex) { Trace.WriteLine($"Mantel: could not stage update on exit. {ex.Message}"); }
+        catch (Exception ex) { Log.Error("Could not stage update on exit.", ex); }
     }
 
     /// <summary>

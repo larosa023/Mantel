@@ -10,7 +10,7 @@ namespace Mantel.UI;
 /// <summary>A small "Updated to vX" card in the bottom-right corner, shown once after an update.</summary>
 public sealed class UpdatedToast : Window
 {
-    public UpdatedToast(string version)
+    public UpdatedToast(string version, Action openSettings)
     {
         SystemDecorations = SystemDecorations.None;
         TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent };
@@ -25,8 +25,13 @@ public sealed class UpdatedToast : Window
         var title = new TextBlock { Text = $"Mantel updated to {version}", FontSize = 14 };
         var notes = new Button { Content = "What's new" };
         notes.Click += (_, _) => { AppInfo.OpenUrl(AppInfo.ReleaseNotesUrl(version)); Close(); };
+        var settings = new Button { Content = "Open settings" };
+        settings.Classes.Add("accent");
+        settings.Click += (_, _) => { openSettings(); Close(); };
         var dismiss = new Button { Content = "Dismiss" };
         dismiss.Click += (_, _) => Close();
+        var hint = new TextBlock { Text = "New widgets start off. Turn them on in Settings." };
+        hint.Classes.Add("muted");
 
         var card = new Border
         {
@@ -35,8 +40,8 @@ public sealed class UpdatedToast : Window
                 Spacing = 10,
                 Children =
                 {
-                    title,
-                    new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { notes, dismiss } },
+                    new StackPanel { Spacing = 2, Children = { title, hint } },
+                    new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { settings, notes, dismiss } },
                 },
             },
         };
@@ -53,7 +58,7 @@ public sealed class UpdatedToast : Window
         };
 
         // Fade out of the way on its own.
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(20) };
         timer.Tick += (_, _) => { timer.Stop(); Close(); };
         timer.Start();
     }

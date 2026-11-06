@@ -4,22 +4,25 @@ Clean, lightweight desktop widgets for Windows. A Rainmeter alternative that loo
 
 ## Widgets
 
-| Widget | Status |
+| Widget | What it shows |
 | --- | --- |
-| Clock (with 24h and world-clock options) | ✅ |
-| PC stats (CPU, memory) | ✅ |
-| Now playing + EQ preset switcher | Planned |
-| Weather (Open-Meteo) | Planned |
+| Clock | Time and date. Add more for world clocks, each with its own time zone and label. |
+| Now Playing | Track, artist, album art and progress from Spotify, browsers and most players, with previous/play/next. Hides when nothing's playing. |
+| Weather | Current conditions, high/low, feels-like, wind and a 3-day forecast (Open-Meteo, no API key). |
+| PC stats | CPU and memory usage. |
+| Countdown | Days, hours and minutes to a date. Add as many as you like. |
+| Disk space | Free space on each drive. |
+| Network | Live download and upload speed. |
 | Fullcourt scores | Planned |
-| Countdown timers | Planned |
 
-Every widget can be turned on or off from the tray menu or Settings. A widget that's off is never created, so it costs no CPU, memory or network.
+Every widget can be turned on or off from the tray menu or Settings, and configurable widgets have their options in Settings. A widget that's off is never created, so it costs no CPU, memory or network. Widgets also pause and hide while a full-screen game or video is running.
 
 ## Using it
 
 - **Tray icon:** click to open Settings; right-click for widget toggles, lock, updates and quit.
 - **Move widgets:** unlock (tray menu or right-click a widget), drag, then lock again.
-- **Settings and positions** are saved in `%AppData%\Mantel\settings.json`.
+- **Snapping:** dragged widgets snap to an 8px grid and to screen edges (can be turned off).
+- **Settings and positions** are saved in `%AppData%\Mantel\settings.json`; a log is kept next to it.
 
 ## Updates
 

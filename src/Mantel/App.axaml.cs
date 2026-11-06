@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using Mantel.Core;
 using Mantel.UI;
 using Mantel.Updates;
@@ -12,7 +13,7 @@ public partial class App : Application
     private SettingsStore _store = null!;
     private WidgetManager _widgets = null!;
     private UpdateService _updates = null!;
-    private TrayController _tray = null!;
+    private TrayController? _tray;
     private SettingsWindow? _settingsWindow;
     private IClassicDesktopStyleApplicationLifetime? _desktop;
 
@@ -23,29 +24,64 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             _desktop = desktop;
+            InstallCrashGuard();
             Startup();
         }
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    /// A bug in one widget should never take Mantel down, because a crashed Mantel can't
+    /// download the update that fixes it. Log it and keep going.
+    /// </summary>
+    private static void InstallCrashGuard()
+    {
+        Dispatcher.UIThread.UnhandledException += (_, e) =>
+        {
+            Log.Error("Unhandled UI exception (kept running).", e.Exception);
+            e.Handled = true;
+        };
+        TaskScheduler.UnobservedTaskException += (_, e) =>
+        {
+            Log.Error("Unobserved task exception.", e.Exception);
+            e.SetObserved();
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            Log.Error("Fatal exception.", e.ExceptionObject as Exception);
     }
 
     private void Startup()
     {
         _store = SettingsStore.Load();
         var settings = _store.Settings;
+        Log.Info($"Mantel {AppInfo.Version} starting.");
 
         if (WidgetRegistry.EnsureInstances(settings, _store.IsFirstRun)) _store.Save();
 
-        _widgets = new WidgetManager(_store) { OpenSettings = OpenSettings };
+        // The updater starts first and on its own, so even if something below fails,
+        // Mantel can still fetch the release that fixes it.
         _updates = new UpdateService(settings);
-        _tray = new TrayController(this, _widgets, _updates, OpenSettings, Quit);
-
-        // First launch of an installed build: start with Windows, like any widget app should.
-        if (_store.IsFirstRun && _updates.IsInstalled) StartupRegistration.Enable();
-
-        _widgets.ShowEnabled();
         _updates.Start();
 
+        _widgets = new WidgetManager(_store) { OpenSettings = OpenSettings };
+
+        try { _tray = new TrayController(this, _widgets, _updates, OpenSettings, Quit); }
+        catch (Exception ex) { Log.Error("Tray icon failed.", ex); }
+
+        // First launch of an installed build: start with Windows, like any widget app should.
+        if (_store.IsFirstRun && _updates.IsInstalled)
+        {
+            try { StartupRegistration.Enable(); }
+            catch (Exception ex) { Log.Error("Couldn't register for startup.", ex); }
+        }
+
+        try { _widgets.ShowEnabled(); }
+        catch (Exception ex) { Log.Error("Showing widgets failed.", ex); }
+
         ShowUpdatedToastIfNeeded(settings);
+
+        // No tray means no way to reach Settings; open it so the user isn't stuck.
+        if (_tray is null) OpenSettings();
     }
 
     private void ShowUpdatedToastIfNeeded(MantelSettings settings)
@@ -57,7 +93,10 @@ public partial class App : Application
         _store.Save();
 
         if (previous is not null && _updates.IsInstalled)
-            new UpdatedToast(AppInfo.Version).Show();
+        {
+            try { new UpdatedToast(AppInfo.Version, OpenSettings).Show(); }
+            catch (Exception ex) { Log.Error("Update toast failed.", ex); }
+        }
     }
 
     private void OpenSettings()
@@ -74,10 +113,11 @@ public partial class App : Application
 
     private void Quit()
     {
+        Log.Info("Quitting.");
         _store.Save();
         _widgets.CloseAll();
         _updates.ApplyOnExitIfPending();
-        _tray.Dispose();
+        _tray?.Dispose();
         _desktop?.Shutdown();
     }
 }
