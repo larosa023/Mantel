@@ -38,7 +38,7 @@ public sealed class CountdownWidget : TimedWidget
 
         return new StackPanel
         {
-            MinWidth = 200,
+            Width = Mantel.UI.WidgetCard.ContentWidth,
             Children =
             {
                 _title,

@@ -125,6 +125,7 @@ public sealed class UpdateService
     public void RestartAndApply()
     {
         if (_pendingManager is null || _pending is null) return;
+        Log.Info($"Restarting to apply update {PendingVersion}.");
         _pendingManager.ApplyUpdatesAndRestart(_pending.TargetFullRelease);
     }
 

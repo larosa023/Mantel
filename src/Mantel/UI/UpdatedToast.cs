@@ -7,10 +7,10 @@ using Mantel.Core;
 
 namespace Mantel.UI;
 
-/// <summary>A small "Updated to vX" card in the bottom-right corner, shown once after an update.</summary>
+/// <summary>A small notice card in the bottom-right corner ("Updated to vX", "everything is off").</summary>
 public sealed class UpdatedToast : Window
 {
-    public UpdatedToast(string version, Action openSettings)
+    public UpdatedToast(string title, string message, Action openSettings, string? notesUrl = null)
     {
         SystemDecorations = SystemDecorations.None;
         TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent };
@@ -21,28 +21,36 @@ public sealed class UpdatedToast : Window
         CanResize = false;
         SizeToContent = SizeToContent.WidthAndHeight;
         WindowStartupLocation = WindowStartupLocation.Manual;
+        WidgetCard.ApplyFont(this);
 
-        var title = new TextBlock { Text = $"Mantel updated to {version}", FontSize = 14 };
-        var notes = new Button { Content = "What's new" };
-        notes.Click += (_, _) => { AppInfo.OpenUrl(AppInfo.ReleaseNotesUrl(version)); Close(); };
-        var settings = new Button { Content = "Open settings" };
-        settings.Classes.Add("accent");
-        settings.Click += (_, _) => { openSettings(); Close(); };
-        var dismiss = new Button { Content = "Dismiss" };
-        dismiss.Click += (_, _) => Close();
-        var hint = new TextBlock { Text = "New widgets start off. Turn them on in Settings." };
+        var heading = new TextBlock { Text = title, FontSize = 14, FontWeight = FontWeight.SemiBold };
+        var hint = new TextBlock { Text = message, MaxWidth = 320, TextWrapping = TextWrapping.Wrap };
         hint.Classes.Add("muted");
+
+        var settings = new Button { Content = "Open settings" };
+        settings.Classes.Add("chip");
+        settings.Classes.Add("on");
+        settings.Click += (_, _) => { openSettings(); Close(); };
+
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { settings } };
+        if (notesUrl is not null)
+        {
+            var notes = new Button { Content = "What's new" };
+            notes.Classes.Add("chip");
+            notes.Click += (_, _) => { AppInfo.OpenUrl(notesUrl); Close(); };
+            buttons.Children.Add(notes);
+        }
+        var dismiss = new Button { Content = "Dismiss" };
+        dismiss.Classes.Add("chip");
+        dismiss.Click += (_, _) => Close();
+        buttons.Children.Add(dismiss);
 
         var card = new Border
         {
             Child = new StackPanel
             {
-                Spacing = 10,
-                Children =
-                {
-                    new StackPanel { Spacing = 2, Children = { title, hint } },
-                    new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { settings, notes, dismiss } },
-                },
+                Spacing = 12,
+                Children = { new StackPanel { Spacing = 3, Children = { heading, hint } }, buttons },
             },
         };
         card.Classes.Add("card");
@@ -57,8 +65,8 @@ public sealed class UpdatedToast : Window
             Position = new PixelPoint(area.Right - size.Width - 8, area.Bottom - size.Height - 8);
         };
 
-        // Fade out of the way on its own.
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(20) };
+        // Gets out of the way on its own.
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(25) };
         timer.Tick += (_, _) => { timer.Stop(); Close(); };
         timer.Start();
     }

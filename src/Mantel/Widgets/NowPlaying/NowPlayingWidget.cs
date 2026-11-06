@@ -21,8 +21,8 @@ namespace Mantel.Widgets.NowPlaying;
 /// </summary>
 public sealed class NowPlayingWidget : IWidget
 {
-    private const double ArtSize = 64;
-    private const double Width = 300;
+    private const double CompactArt = 64;
+    private const double Width = Mantel.UI.WidgetCard.ContentWidth;
 
     private static readonly Geometry PrevIcon = Geometry.Parse("M6 6h2v12H6z M9.5 12l8.5 6V6z");
     private static readonly Geometry NextIcon = Geometry.Parse("M6 18l8.5-6L6 6v12z M16 6v12h2V6h-2z");
@@ -31,7 +31,7 @@ public sealed class NowPlayingWidget : IWidget
 
     private readonly WidgetInstanceSettings _settings;
     private readonly AmpliteClient _amplite = AmpliteClient.Shared;
-    private readonly Border _art = new() { Width = ArtSize, Height = ArtSize, CornerRadius = new CornerRadius(10), ClipToBounds = true };
+    private readonly Border _art = new() { ClipToBounds = true };
     private readonly Image _artImage = new() { Stretch = Stretch.UniformToFill };
     private readonly TextBlock _source = new();
     private readonly TextBlock _title = new() { TextTrimming = TextTrimming.CharacterEllipsis };
@@ -39,6 +39,8 @@ public sealed class NowPlayingWidget : IWidget
     private readonly TextBlock _volume = new() { IsVisible = false, VerticalAlignment = VerticalAlignment.Center };
     private readonly Border _progressTrack = new();
     private readonly Border _progressFill = new() { Width = 0 };
+    private readonly TextBlock _elapsed = new();
+    private readonly TextBlock _total = new() { HorizontalAlignment = HorizontalAlignment.Right };
     private readonly Path _playPauseIcon = new();
     private readonly Button _eqButton = new();
     private readonly DispatcherTimer _progressTimer = new() { Interval = TimeSpan.FromSeconds(1) };
@@ -65,24 +67,59 @@ public sealed class NowPlayingWidget : IWidget
     private bool HideWhenIdle => !_settings.Options.TryGetValue("hideWhenIdle", out var v) || v == "true";
     private bool ShowEq => !_settings.Options.TryGetValue("showEq", out var v) || v == "true";
 
+    /// <summary>"large" = a mini player with big cover art. Default: large inside a flyout, compact on the desktop.</summary>
+    private bool Large => _settings.Options.TryGetValue("layout", out var v) && v != "auto" ? v == "large" : _settings.FlyoutId is not null;
+
+    private double ArtSize => Large ? Width : CompactArt;
+
     public Control View => _view ??= BuildView();
 
     private Control BuildView()
     {
         _art.Classes.Add("placeholder");
         _art.Child = _artImage;
+        _art.Width = ArtSize;
+        _art.Height = ArtSize;
+        _art.CornerRadius = new CornerRadius(Large ? 14 : 10);
 
         _source.Classes.Add("label");
         _title.Classes.Add("title");
         _artist.Classes.Add("muted");
         _volume.Classes.Add("label");
+        _elapsed.Classes.Add("label");
+        _total.Classes.Add("label");
 
         _eqButton.Classes.Add("chip");
         _eqButton.IsVisible = false;
         _eqButton.VerticalAlignment = VerticalAlignment.Center;
-        _eqButton.Margin = new Thickness(6, 0, 0, 0);
         _eqButton.Click += (_, _) => ShowEqMenu();
 
+        _progressFill.Classes.Add("fill");
+        _progressFill.Height = 4;
+        _progressTrack.Classes.Add("track");
+        _progressTrack.Child = _progressFill;
+        _progressTrack.Height = 4;
+        _progressTrack.Width = Width;
+        // A taller invisible hit area makes the thin bar easy to click for seeking.
+        var seekArea = new Border
+        {
+            Background = Brushes.Transparent,
+            Padding = new Thickness(0, 8, 0, 4),
+            Child = _progressTrack,
+            Cursor = new Cursor(StandardCursorType.Hand),
+        };
+        seekArea.PointerPressed += OnSeek;
+
+        var root = Large ? BuildLarge(seekArea) : BuildCompact(seekArea);
+        root.Background = Brushes.Transparent;
+        root.PointerWheelChanged += OnWheel;
+        ShowIdle();
+        return root;
+    }
+
+    private Panel BuildCompact(Control seekArea)
+    {
+        _eqButton.Margin = new Thickness(6, 0, 0, 0);
         var controls = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -102,39 +139,63 @@ public sealed class NowPlayingWidget : IWidget
         {
             Margin = new Thickness(14, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Center,
-            Width = Width - ArtSize - 14,
+            Width = Width - CompactArt - 14,
             Children = { _source, _title, _artist, controls },
         };
 
-        _progressFill.Classes.Add("fill");
-        _progressFill.Height = 4;
-        _progressTrack.Classes.Add("track");
-        _progressTrack.Child = _progressFill;
-        _progressTrack.Height = 4;
-        _progressTrack.Width = Width;
-        // A taller invisible hit area makes the thin bar easy to click for seeking.
-        var seekArea = new Border
-        {
-            Background = Brushes.Transparent,
-            Padding = new Thickness(0, 8, 0, 4),
-            Child = _progressTrack,
-            Cursor = new Cursor(StandardCursorType.Hand),
-        };
-        seekArea.PointerPressed += OnSeek;
-
         var top = new StackPanel { Orientation = Orientation.Horizontal, Children = { _art, text } };
-        var root = new StackPanel { Width = Width, Background = Brushes.Transparent, Children = { top, seekArea } };
-        root.PointerWheelChanged += OnWheel;
-        ShowIdle();
-        return root;
+        return new StackPanel { Width = Width, Children = { top, seekArea } };
     }
 
-    private static Button IconButton(Geometry icon, Func<Task> action, Path? path = null)
+    /// <summary>Mini player: big cover, title, a timeline with times, and centered transport controls.</summary>
+    private Panel BuildLarge(Control seekArea)
+    {
+        _source.Margin = new Thickness(0, 16, 0, 2);
+        _title.FontSize = 18;
+        _title.Margin = new Thickness(0, 0, 0, 2);
+
+        var times = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*"), Margin = new Thickness(0, -2, 0, 0) };
+        times.Children.Add(_elapsed);
+        Grid.SetColumn(_total, 1);
+        times.Children.Add(_total);
+
+        var play = IconButton(PlayIcon, () => Command("toggle"), _playPauseIcon, size: 22);
+        play.Classes.Remove("icon");
+        play.Classes.Add("play");
+
+        var transport = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Spacing = 18,
+            Children =
+            {
+                IconButton(PrevIcon, () => Command("prev"), size: 20),
+                play,
+                IconButton(NextIcon, () => Command("next"), size: 20),
+            },
+        };
+
+        var extras = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 10, 0, 0) };
+        extras.Children.Add(_eqButton);
+        _volume.HorizontalAlignment = HorizontalAlignment.Right;
+        Grid.SetColumn(_volume, 1);
+        extras.Children.Add(_volume);
+
+        return new StackPanel
+        {
+            Width = Width,
+            Children = { _art, _source, _title, _artist, seekArea, times, transport, extras },
+        };
+    }
+
+    private static Button IconButton(Geometry icon, Func<Task> action, Path? path = null, double size = 16)
     {
         path ??= new Path();
+        path.Classes.Add("glyph");
         path.Data = icon;
-        path.Width = 16;
-        path.Height = 16;
+        path.Width = size;
+        path.Height = size;
         path.Stretch = Stretch.Uniform;
 
         var button = new Button { Content = path, Padding = new Thickness(7) };
@@ -424,9 +485,27 @@ public sealed class NowPlayingWidget : IWidget
                 fraction = position / length;
             }
             _progressFill.Width = Width * Math.Clamp(fraction, 0, 1);
+            if (Large) UpdateTimes(fraction);
         }
         catch { /* timeline isn't supported by every player */ }
     }
+
+    private void UpdateTimes(double fraction)
+    {
+        TimeSpan length;
+        if (_usingAmplite) length = TimeSpan.FromMilliseconds(_amplite.State?.Track?.DurationMs ?? 0);
+        else
+        {
+            var t = _session?.GetTimelineProperties();
+            length = t is null ? TimeSpan.Zero : t.EndTime - t.StartTime;
+        }
+        if (length <= TimeSpan.Zero) { _elapsed.Text = ""; _total.Text = ""; return; }
+        _elapsed.Text = Format(length * Math.Clamp(fraction, 0, 1));
+        _total.Text = Format(length);
+    }
+
+    private static string Format(TimeSpan t) =>
+        t.TotalHours >= 1 ? $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}" : $"{(int)t.TotalMinutes}:{t.Seconds:00}";
 
     private void ShowIdle()
     {
@@ -440,6 +519,24 @@ public sealed class NowPlayingWidget : IWidget
         _progressFill.Width = 0;
         _eqButton.IsVisible = false;
         if (_view is not null) _view.IsVisible = !HideWhenIdle;
+    }
+
+    /// <summary>Fills the widget with sample content without any player (used to render screenshots in CI).</summary>
+    public void ShowPreview(string source, string title, string artist, Bitmap? art, double progress, string? eqLabel)
+    {
+        _ = View;
+        _source.Text = source;
+        _source.Classes.Set("accent", source == "AMPLITE");
+        _title.Text = title;
+        _artist.Text = artist;
+        _artImage.Source = art;
+        _playPauseIcon.Data = PauseIcon;
+        _progressFill.Width = Width * Math.Clamp(progress, 0, 1);
+        if (Large) { _elapsed.Text = Format(TimeSpan.FromSeconds(308 * progress)); _total.Text = Format(TimeSpan.FromSeconds(308)); }
+        _eqButton.IsVisible = eqLabel is not null;
+        _eqButton.Content = eqLabel;
+        _eqButton.Classes.Set("on", eqLabel is not null);
+        View.IsVisible = true;
     }
 
     private static string SourceName(string appId)
@@ -461,5 +558,6 @@ public sealed class NowPlayingWidget : IWidget
     public static Control BuildOptions(WidgetOptionsContext ctx) =>
         OptionsUi.Panel(
             OptionsUi.Toggle(ctx, "hideWhenIdle", "Hide when nothing is playing", fallback: true),
-            OptionsUi.Toggle(ctx, "showEq", "Show Amplite's EQ presets", fallback: true));
+            OptionsUi.Toggle(ctx, "showEq", "Show Amplite's EQ presets", fallback: true),
+            OptionsUi.Choice(ctx, "layout", "Layout", new[] { ("auto", "Automatic (large in flyouts)"), ("compact", "Compact"), ("large", "Large cover art") }, "auto"));
 }

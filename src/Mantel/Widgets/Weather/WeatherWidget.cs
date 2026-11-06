@@ -23,6 +23,7 @@ public sealed class WeatherWidget : IWidget
     private readonly TextBlock _range = new();
     private readonly TextBlock _place = new();
     private readonly Grid _days = new() { ColumnDefinitions = new ColumnDefinitions("*,*,*") };
+    private readonly Grid _hours = new() { ColumnDefinitions = new ColumnDefinitions("*,*,*,*,*,*") };
     private readonly StackPanel _forecastRow = new() { Spacing = 0 };
     private Control? _view;
     private CancellationTokenSource? _cts;
@@ -70,9 +71,13 @@ public sealed class WeatherWidget : IWidget
         var divider = new Border { Margin = new(0, 12, 0, 10) };
         divider.Classes.Add("divider");
         _forecastRow.Children.Add(divider);
+        _forecastRow.Children.Add(_hours);
+        var divider2 = new Border { Margin = new(0, 12, 0, 10) };
+        divider2.Classes.Add("divider");
+        _forecastRow.Children.Add(divider2);
         _forecastRow.Children.Add(_days);
 
-        return new StackPanel { Width = 260, Children = { _place, top, _forecastRow } };
+        return new StackPanel { Width = Mantel.UI.WidgetCard.ContentWidth, Children = { _place, top, _forecastRow } };
     }
 
     public void Start()
@@ -148,6 +153,34 @@ public sealed class WeatherWidget : IWidget
         _range.Text = today is null
             ? $"Feels {r.FeelsLike:0}°"
             : $"H {today.High:0}°  L {today.Low:0}° · Feels {r.FeelsLike:0}° · {r.Wind:0} {unit}";
+
+        // Next six hours: time, icon, temperature (and rain chance when it's likely).
+        _hours.Children.Clear();
+        var now = DateTime.Now;
+        var nextHours = r.Hours.Where(h => h.Time > now.AddMinutes(-30)).Take(6).ToList();
+        for (var i = 0; i < nextHours.Count; i++)
+        {
+            var h = nextHours[i];
+            var label = new TextBlock
+            {
+                Text = i == 0 ? "NOW" : h.Time.ToString("h tt", CultureInfo.CurrentCulture).Replace(" ", "").ToUpperInvariant(),
+                HorizontalAlignment = HorizontalAlignment.Center,
+            };
+            label.Classes.Add("label");
+            var icon = WeatherIcon.Create(h.Kind, h.IsDay, 22);
+            icon.HorizontalAlignment = HorizontalAlignment.Center;
+            var temp = new TextBlock { Text = $"{h.Temperature:0}°", HorizontalAlignment = HorizontalAlignment.Center };
+            temp.Classes.Add("value");
+            var cell = new StackPanel { Spacing = 4, Children = { label, icon, temp } };
+            if (h.RainChance >= 30)
+            {
+                var rain = new TextBlock { Text = $"{h.RainChance}%", FontSize = 10, HorizontalAlignment = HorizontalAlignment.Center, Foreground = Brush.Parse("#6FA8E8") };
+                cell.Children.Add(rain);
+            }
+            Grid.SetColumn(cell, i);
+            _hours.Children.Add(cell);
+        }
+        _hours.IsVisible = nextHours.Count > 0;
 
         _days.Children.Clear();
         var upcoming = r.Days.Skip(1).Take(3).ToList();

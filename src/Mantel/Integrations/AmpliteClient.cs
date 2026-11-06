@@ -110,14 +110,15 @@ public sealed class AmpliteClient
     public async Task<Bitmap?> GetArtAsync(string? url, int width)
     {
         if (string.IsNullOrEmpty(url)) return null;
-        if (_art.TryGetValue(url, out var cached)) return cached;
+        var key = $"{width}|{url}";
+        if (_art.TryGetValue(key, out var cached)) return cached;
         try
         {
             var bytes = await ArtHttp.GetByteArrayAsync(url);
             using var ms = new MemoryStream(bytes);
             var bmp = Bitmap.DecodeToWidth(ms, width);
             if (_art.Count > 40) _art.Clear(); // simple cap; covers are cheap to refetch
-            _art[url] = bmp;
+            _art[key] = bmp;
             return bmp;
         }
         catch (Exception ex)

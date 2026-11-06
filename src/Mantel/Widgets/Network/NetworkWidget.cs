@@ -2,6 +2,7 @@ using System.Net.NetworkInformation;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Mantel.Core;
+using Mantel.UI;
 
 namespace Mantel.Widgets.Network;
 
@@ -13,6 +14,7 @@ public sealed class NetworkWidget : TimedWidget
     private readonly TextBlock _adapter = new();
     private long _lastReceived = -1, _lastSent = -1;
     private DateTime _lastSample;
+    private readonly Sparkline _history = new(capacity: 60, height: 34) { Max = null, Width = WidgetCard.ContentWidth };
 
     public NetworkWidget(WidgetInstanceSettings settings) : base(settings, TimeSpan.FromSeconds(2)) { }
 
@@ -21,7 +23,7 @@ public sealed class NetworkWidget : TimedWidget
         _adapter.Classes.Add("label");
         return new StackPanel
         {
-            Width = 220,
+            Width = WidgetCard.ContentWidth,
             Spacing = 8,
             Children =
             {
@@ -31,6 +33,7 @@ public sealed class NetworkWidget : TimedWidget
                     ColumnDefinitions = new ColumnDefinitions("*,*"),
                     Children = { Stat("DOWN", _down, 0), Stat("UP", _up, 1) },
                 },
+                _history,
             },
         };
     }
@@ -68,7 +71,9 @@ public sealed class NetworkWidget : TimedWidget
             var seconds = (now - _lastSample).TotalSeconds;
             if (seconds > 0)
             {
-                _down.Text = Rate(Math.Max(0, received - _lastReceived) / seconds);
+                var down = Math.Max(0, received - _lastReceived) / seconds;
+                _history.Push(down);
+                _down.Text = Rate(down);
                 _up.Text = Rate(Math.Max(0, sent - _lastSent) / seconds);
             }
         }

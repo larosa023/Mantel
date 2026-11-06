@@ -20,6 +20,11 @@
     <SolidColorBrush x:Key="Mantel.Divider" Color="#1AFFFFFF" />
     <FontWeight x:Key="Mantel.BigWeight">Light</FontWeight>
     <x:Double x:Key="Mantel.BigSize">44</x:Double>
+    <SolidColorBrush x:Key="Mantel.FlyoutBackground" Color="#F2141519" />
+    <SolidColorBrush x:Key="Mantel.FlyoutBorder" Color="#22FFFFFF" />
+    <SolidColorBrush x:Key="Mantel.SectionBackground" Color="#0DFFFFFF" />
+    <CornerRadius x:Key="Mantel.FlyoutRadius">22</CornerRadius>
+    <CornerRadius x:Key="Mantel.SectionRadius">14</CornerRadius>
   </Styles.Resources>
 
   <Style Selector="Border.card">
@@ -133,7 +138,7 @@
     <Setter Property="CornerRadius" Value="16" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
-  <Style Selector="Button.icon Path">
+  <Style Selector="Button.icon Path.glyph">
     <Setter Property="Fill" Value="{DynamicResource Mantel.Text}" />
   </Style>
   <Style Selector="Button.icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -141,6 +146,48 @@
   </Style>
   <Style Selector="Button.icon:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource Mantel.Divider}" />
+  </Style>
+
+  <!-- Big round play button in the large Now Playing layout -->
+  <Style Selector="Button.play">
+    <Setter Property="Width" Value="54" />
+    <Setter Property="Height" Value="54" />
+    <Setter Property="CornerRadius" Value="27" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource Mantel.Accent}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.play Path.glyph">
+    <Setter Property="Fill" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.play:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Mantel.AccentSoft}" />
+  </Style>
+
+  <!-- Line icons (UI/Icons.cs) take the surrounding text color unless given one -->
+  <Style Selector="Path.icon-stroke">
+    <Setter Property="Stroke" Value="{DynamicResource Mantel.Text}" />
+  </Style>
+  <Style Selector="Path.icon-accent">
+    <Setter Property="Stroke" Value="{DynamicResource Mantel.Accent}" />
+  </Style>
+
+  <!-- ===================== Flyout panel ===================== -->
+  <Style Selector="Border.flyout">
+    <Setter Property="Background" Value="{DynamicResource Mantel.FlyoutBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Mantel.FlyoutBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Mantel.FlyoutRadius}" />
+    <Setter Property="BoxShadow" Value="0 12 40 0 #73000000" />
+    <Setter Property="Margin" Value="14" />
+  </Style>
+  <Style Selector="Border.flyout-section">
+    <Setter Property="Background" Value="{DynamicResource Mantel.SectionBackground}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Mantel.SectionRadius}" />
+    <Setter Property="Padding" Value="16,14" />
   </Style>
 
   <!-- Small text button inside widgets (EQ preset picker) -->
@@ -184,47 +231,162 @@
     <Setter Property="Foreground" Value="#F0ECE4" />
   </Style>
   <Style Selector="Window.settings TextBlock.muted">
-    <Setter Property="Foreground" Value="#A8A49D" />
+    <Setter Property="Foreground" Value="#A3A09A" />
   </Style>
-  <Style Selector="Window.settings TextBlock.section">
-    <Setter Property="FontSize" Value="12" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-    <Setter Property="LetterSpacing" Value="1" />
-    <Setter Property="Foreground" Value="#E8A15A" />
-    <Setter Property="Margin" Value="0,18,0,6" />
+  <Style Selector="Window.settings TextBlock.group">
+    <Setter Property="Foreground" Value="#D6D2CA" />
   </Style>
-
-  <Style Selector="Button.accent">
-    <Setter Property="Background" Value="#E8A15A" />
-    <Setter Property="Foreground" Value="#141519" />
+  <Style Selector="Window.settings Path.icon-stroke">
+    <Setter Property="Stroke" Value="#E6E2DA" />
   </Style>
 
-  <Style Selector="Expander">
-    <Setter Property="HorizontalAlignment" Value="Stretch" />
-    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-    <Setter Property="Margin" Value="0,3" />
+  <Style Selector="Border.sidebar">
+    <Setter Property="Background" Value="#66000000" />
+    <Setter Property="BorderBrush" Value="#12FFFFFF" />
+    <Setter Property="BorderThickness" Value="0,0,1,0" />
   </Style>
 
-  <Style Selector="Button.link">
+  <!-- Sidebar navigation -->
+  <Style Selector="Button.nav">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Foreground" Value="#E8A15A" />
-    <Setter Property="Padding" Value="4,2" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="12,9" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="FontSize" Value="14" />
     <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.nav:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#14FFFFFF" />
+  </Style>
+  <Style Selector="Button.nav.selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#1FFFFFFF" />
+  </Style>
+  <Style Selector="Button.nav.selected Path.icon-stroke">
+    <Setter Property="Stroke" Value="{DynamicResource Mantel.Accent}" />
+  </Style>
+  <Style Selector="Button.nav.selected TextBlock">
+    <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
-  <!-- Theme picker swatches -->
-  <Style Selector="Button.swatch">
-    <Setter Property="Padding" Value="0" />
+  <!-- Setting cards: the rows every page is made of -->
+  <Style Selector="Border.setting-card">
+    <Setter Property="Background" Value="#14FFFFFF" />
+    <Setter Property="BorderBrush" Value="#0FFFFFFF" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+  </Style>
+  <Style Selector="Border.setting-card.clickable:pointerover">
+    <Setter Property="Background" Value="#1CFFFFFF" />
+  </Style>
+  <Style Selector="Border.setting-card.empty">
+    <Setter Property="Background" Value="#0AFFFFFF" />
+    <Setter Property="BorderBrush" Value="#1AFFFFFF" />
+  </Style>
+  <Style Selector="Border.icon-tile">
+    <Setter Property="Background" Value="#14FFFFFF" />
+  </Style>
+
+  <!-- Buttons -->
+  <Style Selector="Window.settings Button">
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="{DynamicResource Mantel.Accent}" />
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+    <Setter Property="Padding" Value="14,8" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.primary TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.primary Path.icon-stroke">
+    <Setter Property="Stroke" Value="{DynamicResource Mantel.AccentText}" />
+  </Style>
+  <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Mantel.AccentSoft}" />
+  </Style>
+  <Style Selector="Button.ghost">
     <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="2" />
-    <Setter Property="BorderBrush" Value="Transparent" />
-    <Setter Property="CornerRadius" Value="12" />
-    <Setter Property="Margin" Value="0,0,8,8" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="10,6" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
-  <Style Selector="Button.swatch.selected">
-    <Setter Property="BorderBrush" Value="#E8A15A" />
+  <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#14FFFFFF" />
+  </Style>
+  <Style Selector="Button.danger">
+    <Setter Property="Background" Value="#26E8665A" />
+    <Setter Property="Foreground" Value="#FF9B91" />
+    <Setter Property="Padding" Value="14,8" />
+  </Style>
+  <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#40E8665A" />
+  </Style>
+
+  <!-- Segmented control -->
+  <Style Selector="Button.segment">
+    <Setter Property="Background" Value="#0FFFFFFF" />
+    <Setter Property="BorderBrush" Value="#1AFFFFFF" />
+    <Setter Property="BorderThickness" Value="1,1,0,1" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Padding" Value="14,6" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.segment.first">
+    <Setter Property="CornerRadius" Value="8,0,0,8" />
+  </Style>
+  <Style Selector="Button.segment.last">
+    <Setter Property="CornerRadius" Value="0,8,8,0" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.segment.first.last">
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="Button.segment.selected">
+    <Setter Property="Background" Value="{DynamicResource Mantel.Accent}" />
+  </Style>
+  <Style Selector="Button.segment.selected TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Mantel.AccentText}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.segment.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Mantel.AccentSoft}" />
+  </Style>
+
+  <!-- Theme gallery tiles and flyout icon choices -->
+  <Style Selector="Button.theme-tile">
+    <Setter Property="Background" Value="#0DFFFFFF" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Padding" Value="10,10,10,12" />
+    <Setter Property="Margin" Value="0,0,12,12" />
+    <Setter Property="VerticalContentAlignment" Value="Top" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.theme-tile:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#17FFFFFF" />
+  </Style>
+  <Style Selector="Button.theme-tile.selected">
+    <Setter Property="BorderBrush" Value="{DynamicResource Mantel.Accent}" />
+  </Style>
+  <Style Selector="Button.theme-tile.selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BorderBrush" Value="{DynamicResource Mantel.Accent}" />
+  </Style>
+  <Style Selector="Button.icon-choice">
+    <Setter Property="Background" Value="#0FFFFFFF" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.icon-choice.selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BorderBrush" Value="{DynamicResource Mantel.Accent}" />
+  </Style>
+  <Style Selector="Button.swatch">
+    <Setter Property="Cursor" Value="Hand" />
   </Style>
 
 </Styles>

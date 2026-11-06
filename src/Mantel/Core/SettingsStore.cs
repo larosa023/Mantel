@@ -28,6 +28,11 @@ public sealed class SettingsStore
         IsFirstRun = isFirstRun;
     }
 
+    private bool _inMemory;
+
+    /// <summary>A store that never touches disk (used to render screenshots in CI).</summary>
+    public static SettingsStore InMemory(MantelSettings settings) => new(settings, isFirstRun: false) { _inMemory = true };
+
     public static SettingsStore Load()
     {
         try
@@ -50,6 +55,7 @@ public sealed class SettingsStore
 
     public void Save()
     {
+        if (_inMemory) return;
         try
         {
             Directory.CreateDirectory(Folder);

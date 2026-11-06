@@ -11,6 +11,9 @@ namespace Mantel.UI;
 /// </summary>
 public static class WidgetCard
 {
+    /// <summary>Every widget's content is this wide, so cards line up on the desktop and in flyouts.</summary>
+    public const double ContentWidth = 300;
+
     public static Border Create(Control view, ContextMenu? menu = null)
     {
         var card = new Border { Child = view, ContextMenu = menu, IsVisible = view.IsVisible };

@@ -116,6 +116,16 @@ public static class ThemeManager
         r["Mantel.BigWeight"] = t.BigWeight;
         r["Mantel.BigSize"] = t.BigSize;
 
+        // Flyouts float over windows, not the wallpaper, so they're always nearly opaque,
+        // even on see-through themes; Bare gets a dark glass panel since it has no card at all.
+        var card = Color.Parse(t.CardBackground);
+        var flyoutBg = t.Bare ? Color.Parse("#EB101114") : Color.FromArgb(Math.Max(card.A, (byte)0xF2), card.R, card.G, card.B);
+        r["Mantel.FlyoutBackground"] = new SolidColorBrush(flyoutBg);
+        r["Mantel.FlyoutBorder"] = Brush(t.Bare ? "#22FFFFFF" : t.CardBorderThickness > 0 ? t.CardBorder : "#1AFFFFFF");
+        r["Mantel.SectionBackground"] = Brush(t.IsLight ? "#0A000000" : t.Id == "terminal" ? "#0D39FF14" : "#0DFFFFFF");
+        r["Mantel.FlyoutRadius"] = new CornerRadius(t.Bare ? 22 : t.CardRadius <= 0 ? 0 : t.CardRadius + 6);
+        r["Mantel.SectionRadius"] = new CornerRadius(t.Bare ? 14 : Math.Max(0, t.CardRadius - 2));
+
         SetAccent(app, ParseAccent(accentOverride) ?? Color.Parse(t.Accent));
     }
 
@@ -127,6 +137,14 @@ public static class ThemeManager
         r["Mantel.Accent"] = new SolidColorBrush(accent);
         r["Mantel.AccentSoft"] = new SolidColorBrush(Color.FromArgb(0xB3, accent.R, accent.G, accent.B));
         r["Mantel.AccentText"] = new SolidColorBrush(Contrast(accent));
+        // Fluent's own controls (toggle switches, sliders, focus rings) follow the accent too.
+        r["SystemAccentColor"] = accent;
+        r["SystemAccentColorLight1"] = Shift(accent, 0.15);
+        r["SystemAccentColorLight2"] = Shift(accent, 0.3);
+        r["SystemAccentColorLight3"] = Shift(accent, 0.45);
+        r["SystemAccentColorDark1"] = Shift(accent, -0.15);
+        r["SystemAccentColorDark2"] = Shift(accent, -0.3);
+        r["SystemAccentColorDark3"] = Shift(accent, -0.45);
         if (Current.Glow)
         {
             r["Mantel.CardBorder"] = new SolidColorBrush(Color.FromArgb(0xC0, accent.R, accent.G, accent.B));
@@ -143,7 +161,14 @@ public static class ThemeManager
     public static Color? ParseAccent(string? value) =>
         value is { Length: 7 } && value[0] == '#' && Color.TryParse(value, out var c) ? c : null;
 
-    /// <summary>Dark text on light accents, light text on dark ones.</summary>
+    /// <summary>Lighter (amount &gt; 0) or darker (amount &lt; 0) version of a color.</summary>
+    private static Color Shift(Color c, double amount)
+    {
+        byte Mix(byte v) => (byte)Math.Clamp(amount >= 0 ? v + (255 - v) * amount : v * (1 + amount), 0, 255);
+        return Color.FromRgb(Mix(c.R), Mix(c.G), Mix(c.B));
+    }
+
+        /// <summary>Dark text on light accents, light text on dark ones.</summary>
     private static Color Contrast(Color c) =>
         (0.299 * c.R + 0.587 * c.G + 0.114 * c.B) > 150 ? Color.Parse("#141519") : Colors.White;
 

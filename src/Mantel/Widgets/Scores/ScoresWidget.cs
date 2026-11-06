@@ -19,7 +19,7 @@ namespace Mantel.Widgets.Scores;
 public sealed class ScoresWidget : IWidget
 {
     public const string DefaultSite = "https://nbafullcourty.netlify.app";
-    private const double Width = 280;
+    private const double Width = Mantel.UI.WidgetCard.ContentWidth;
 
     private static readonly HttpClient Http = CreateClient();
     private static readonly Dictionary<string, Bitmap> Logos = new();

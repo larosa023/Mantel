@@ -7,7 +7,7 @@ namespace Mantel.Widgets.Disks;
 /// <summary>Space used on each fixed drive. Checks once a minute; disk space changes slowly.</summary>
 public sealed class DisksWidget : TimedWidget
 {
-    private const double Width = 220;
+    private const double Width = WidgetCard.ContentWidth;
 
     private readonly StackPanel _list = new() { Spacing = 14 };
     private readonly Dictionary<string, Meter> _meters = new();

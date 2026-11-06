@@ -9,6 +9,8 @@ public enum WeatherKind { Clear, PartlyCloudy, Cloudy, Fog, Drizzle, Rain, Snow,
 
 public sealed record DayForecast(DateOnly Date, WeatherKind Kind, double High, double Low);
 
+public sealed record HourForecast(DateTime Time, WeatherKind Kind, bool IsDay, double Temperature, int RainChance);
+
 public sealed record WeatherReport(
     double Temperature,
     double FeelsLike,
@@ -16,7 +18,8 @@ public sealed record WeatherReport(
     WeatherKind Kind,
     string Condition,
     bool IsDay,
-    IReadOnlyList<DayForecast> Days);
+    IReadOnlyList<DayForecast> Days,
+    IReadOnlyList<HourForecast> Hours);
 
 public sealed record Place(string Name, string Region, double Latitude, double Longitude)
 {
@@ -42,6 +45,7 @@ public static class WeatherClient
                   $"?latitude={lat.ToString(inv)}&longitude={lon.ToString(inv)}" +
                   "&current=temperature_2m,apparent_temperature,weather_code,is_day,wind_speed_10m" +
                   "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
+                  "&hourly=temperature_2m,weather_code,is_day,precipitation_probability&forecast_hours=8" +
                   $"&temperature_unit={(fahrenheit ? "fahrenheit" : "celsius")}" +
                   $"&wind_speed_unit={(fahrenheit ? "mph" : "kmh")}" +
                   "&timezone=auto&forecast_days=4";
@@ -66,6 +70,22 @@ public static class WeatherClient
                 lows[i].GetDouble()));
         }
 
+        var hours = new List<HourForecast>();
+        if (root.TryGetProperty("hourly", out var hourly))
+        {
+            var ht = hourly.GetProperty("time");
+            var htemp = hourly.GetProperty("temperature_2m");
+            var hcode = hourly.GetProperty("weather_code");
+            var hday = hourly.GetProperty("is_day");
+            hourly.TryGetProperty("precipitation_probability", out var hrain);
+            for (var i = 0; i < ht.GetArrayLength(); i++)
+            {
+                if (!DateTime.TryParse(ht[i].GetString(), inv, DateTimeStyles.None, out var t)) continue;
+                hours.Add(new HourForecast(t, KindOf(hcode[i].GetInt32()), hday[i].GetInt32() == 1, htemp[i].GetDouble(),
+                    hrain.ValueKind == JsonValueKind.Array && hrain[i].ValueKind == JsonValueKind.Number ? hrain[i].GetInt32() : 0));
+            }
+        }
+
         return new WeatherReport(
             current.GetProperty("temperature_2m").GetDouble(),
             current.GetProperty("apparent_temperature").GetDouble(),
@@ -73,7 +93,8 @@ public static class WeatherClient
             KindOf(code),
             ConditionOf(code),
             current.GetProperty("is_day").GetInt32() == 1,
-            days);
+            days,
+            hours);
     }
 
     public static async Task<IReadOnlyList<Place>> SearchAsync(string query, CancellationToken ct)

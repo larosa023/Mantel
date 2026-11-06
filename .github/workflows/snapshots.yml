@@ -1,0 +1,48 @@
+name: Snapshots
+
+# Renders the real widgets, flyouts and Settings window (every theme) to PNGs on Windows and
+# publishes them to the "snapshots" branch, so UI changes can be reviewed as pictures.
+on:
+  push:
+    branches: [main]
+    paths: ['src/**', 'tools/**', '.github/workflows/snapshots.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snapshots
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Render
+        run: dotnet run --project tools/Mantel.Snapshots -c Release -- ${{ github.workspace }}\out
+
+      - name: Publish to the snapshots branch
+        if: always()
+        shell: bash
+        run: |
+          cd out
+          echo "${{ github.sha }}" > SOURCE
+          git init -q -b snapshots
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Snapshots of ${{ github.sha }}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" snapshots
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snapshots
+          path: out

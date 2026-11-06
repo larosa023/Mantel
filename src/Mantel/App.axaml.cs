@@ -86,8 +86,34 @@ public partial class App : Application
 
         ShowUpdatedToastIfNeeded(settings);
 
+        // Launching Mantel again (Start menu, shortcut) opens Settings instead of doing nothing.
+        Program.ShowSettingsRequested = OpenSettings;
+
+        if (_desktop is not null)
+        {
+            _desktop.ShutdownRequested += (_, e) => Log.Info($"Shutdown requested by the system (Windows signing out or restarting).");
+            _desktop.Exit += (_, e) => Log.Info($"App exit (code {e.ApplicationExitCode}).");
+        }
+        Log.Info($"Start with Windows: {(StartupRegistration.IsEnabled ? "on" : "off")}. " +
+                 $"Desktop widgets on: {settings.Widgets.Count(w => w.Enabled && w.FlyoutId is null)}, " +
+                 $"flyouts on: {settings.Flyouts.Count(f => f.Enabled)}.");
+
         // No tray means no way to reach Settings; open it so the user isn't stuck.
         if (_tray is null) OpenSettings();
+        else if (!_store.IsFirstRun && NothingIsOn(settings)) ShowNothingOnHint();
+    }
+
+    private static bool NothingIsOn(MantelSettings s) =>
+        !s.Widgets.Any(w => w.Enabled && w.FlyoutId is null) && !s.Flyouts.Any(f => f.Enabled);
+
+    /// <summary>Running with everything off looks exactly like not running; say so once per start.</summary>
+    private void ShowNothingOnHint()
+    {
+        try
+        {
+            new UpdatedToast("Mantel is running, but every widget and flyout is off.", "Turn some on in Settings.", OpenSettings).Show();
+        }
+        catch (Exception ex) { Log.Error("Hint toast failed.", ex); }
     }
 
     private void ShowUpdatedToastIfNeeded(MantelSettings settings)
@@ -100,7 +126,7 @@ public partial class App : Application
 
         if (previous is not null && _updates.IsInstalled)
         {
-            try { new UpdatedToast(AppInfo.Version, OpenSettings).Show(); }
+            try { new UpdatedToast($"Mantel updated to {AppInfo.Version}", "New widgets start off. Turn them on in Settings.", OpenSettings, AppInfo.ReleaseNotesUrl(AppInfo.Version)).Show(); }
             catch (Exception ex) { Log.Error("Update toast failed.", ex); }
         }
     }

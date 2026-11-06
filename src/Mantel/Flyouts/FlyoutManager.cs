@@ -18,6 +18,10 @@ public sealed class FlyoutManager : IDisposable
     private readonly MantelSettings _settings;
     private readonly Func<WidgetInstanceSettings, ContextMenu> _menuFor;
     private readonly Func<bool> _isFullscreen;
+
+    /// <summary>The flyout header's gear and empty-state button open Settings through this.</summary>
+    private Action? _openSettings;
+    public Action? OpenSettings { get => _openSettings; set => _openSettings = value; }
     private readonly List<Host> _hosts = new();
     private readonly DispatcherTimer _edgeTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
 
@@ -45,7 +49,7 @@ public sealed class FlyoutManager : IDisposable
             try
             {
                 var instances = _settings.Widgets.Where(w => w.FlyoutId == f.Id && w.Enabled).ToList();
-                var window = new FlyoutWindow(f, instances, _menuFor);
+                var window = new FlyoutWindow(f, instances, _menuFor, () => _openSettings?.Invoke());
 
                 TrayIcon? tray = null;
                 if (f.TrayIcon)

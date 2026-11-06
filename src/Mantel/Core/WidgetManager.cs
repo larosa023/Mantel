@@ -20,8 +20,13 @@ public sealed class WidgetManager
     /// <summary>Raised when instances or flyouts are added, removed or moved (lists need rebuilding).</summary>
     public event Action? StructureChanged;
 
-    /// <summary>Lets a widget's right-click menu open the settings window.</summary>
-    public Action? OpenSettings { get; set; }
+    /// <summary>Lets a widget's right-click menu (and flyout headers) open the settings window.</summary>
+    public Action? OpenSettings
+    {
+        get => _openSettings;
+        set { _openSettings = value; Flyouts.OpenSettings = value; }
+    }
+    private Action? _openSettings;
 
     public FlyoutManager Flyouts { get; }
 
@@ -112,6 +117,27 @@ public sealed class WidgetManager
         _store.Save();
         StructureChanged?.Invoke();
         Changed?.Invoke();
+    }
+
+    /// <summary>Moves a flyout widget up (-1) or down (+1) among the widgets in the same flyout.</summary>
+    public void MoveInFlyout(string id, int delta)
+    {
+        var s = Find(id);
+        if (s?.FlyoutId is null) return;
+        var siblings = Settings.Widgets.Where(w => w.FlyoutId == s.FlyoutId).ToList();
+        var index = siblings.IndexOf(s);
+        var target = index + delta;
+        if (target < 0 || target >= siblings.Count) return;
+
+        // Swap the two entries' places in the full list; flyouts show widgets in list order.
+        var other = siblings[target];
+        var a = Settings.Widgets.IndexOf(s);
+        var b = Settings.Widgets.IndexOf(other);
+        (Settings.Widgets[a], Settings.Widgets[b]) = (Settings.Widgets[b], Settings.Widgets[a]);
+
+        Flyouts.Rebuild();
+        _store.Save();
+        StructureChanged?.Invoke();
     }
 
     /// <summary>Rebuilds a widget after its options change. Its position is kept.</summary>

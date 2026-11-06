@@ -46,7 +46,7 @@ public sealed class ClockWidget : TimedWidget
         _date.Classes.Add("muted");
 
         var timeRow = new StackPanel { Orientation = Orientation.Horizontal, Children = { _time, _period } };
-        return new StackPanel { MinWidth = 200, Children = { _label, timeRow, _date } };
+        return new StackPanel { Width = Mantel.UI.WidgetCard.ContentWidth, Children = { _label, timeRow, _date } };
     }
 
     protected override void Refresh()

@@ -11,16 +11,17 @@ namespace Mantel.Widgets.SystemStats;
 /// </summary>
 public sealed class SystemStatsWidget : TimedWidget
 {
-    private const double Width = 220;
+    private const double Width = WidgetCard.ContentWidth;
 
     private readonly Meter _cpu = new("CPU", Width);
     private readonly Meter _ram = new("MEMORY", Width);
+    private readonly Sparkline _cpuHistory = new(capacity: 60, height: 30) { Width = Width, Margin = new Avalonia.Thickness(0, 2, 0, 0) };
     private ulong _lastIdle, _lastTotal;
 
     public SystemStatsWidget(WidgetInstanceSettings settings) : base(settings, TimeSpan.FromSeconds(2)) { }
 
     protected override Control BuildView() =>
-        new StackPanel { Spacing = 14, Children = { _cpu.View, _ram.View } };
+        new StackPanel { Spacing = 12, Children = { _cpu.View, _cpuHistory, _ram.View } };
 
     protected override void Refresh()
     {
@@ -36,6 +37,7 @@ public sealed class SystemStatsWidget : TimedWidget
             {
                 var busy = 1.0 - (double)dIdle / dTotal;
                 _cpu.Set(busy, $"{busy * 100:0}%");
+                _cpuHistory.Push(busy);
             }
             _lastIdle = idleNow;
             _lastTotal = totalNow;
