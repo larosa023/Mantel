@@ -81,7 +81,10 @@ public sealed class FlyoutManager : IDisposable
             "top" => FlyoutOrigin.Top,
             _ => FlyoutOrigin.Taskbar,
         };
-        host.Window.OpenFlyout(origin, Cursor());
+        CloseOthers(host.Window);
+        // Pinned: opened on purpose (from Settings or the tray menu), so it stays until clicked away
+        // instead of sliding shut because the mouse isn't on it.
+        host.Window.OpenFlyout(origin, Cursor(), pinned: true);
     }
 
     public void CloseAll()
@@ -112,7 +115,7 @@ public sealed class FlyoutManager : IDisposable
         var p = Cursor();
 
         // An edge flyout that's open closes once the mouse has wandered off it for a moment.
-        var open = _hosts.FirstOrDefault(h => h.Window.IsOpen && h.Window.Origin != FlyoutOrigin.Taskbar);
+        var open = _hosts.FirstOrDefault(h => h.Window.IsOpen && h.Window.Origin != FlyoutOrigin.Taskbar && !h.Window.IsPinned);
         if (open is not null)
         {
             if (open.Window.Contains(p, slack: 24) || AtEdge(open, p)) _outsideSince = DateTime.MaxValue;

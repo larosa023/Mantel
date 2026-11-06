@@ -29,6 +29,12 @@ public sealed class FlyoutWindow : Window
 
     public bool IsOpen { get; private set; }
 
+    /// <summary>Opened from Settings' "Open it now": stays open until it loses focus, even if it's an edge flyout.</summary>
+    public bool IsPinned { get; private set; }
+
+    private PixelPoint _anchor;
+    private bool _placed;
+
     /// <summary>When it last closed; lets a tray click that closed it (by stealing focus) not reopen it.</summary>
     public DateTime ClosedAt { get; private set; }
 
@@ -52,8 +58,12 @@ public sealed class FlyoutWindow : Window
         };
         Content = _panel;
 
-        // Opened from the taskbar it takes focus, so clicking anywhere else closes it (like Windows' own flyouts).
-        Deactivated += (_, _) => { if (IsOpen && Origin == FlyoutOrigin.Taskbar) CloseFlyout(); };
+        // Opened from the taskbar (or pinned) it takes focus, so clicking anywhere else closes it, like Windows' own flyouts.
+        Deactivated += (_, _) => { if (IsOpen && (Origin == FlyoutOrigin.Taskbar || IsPinned)) CloseFlyout(); };
+
+        // Content can grow after it opens (scores and weather load a moment later). Re-anchor so a
+        // taskbar flyout grows upward instead of running off the bottom of the screen.
+        _panel.SizeChanged += (_, _) => { if (IsOpen && _placed) PlaceAt(_anchor); };
         KeyDown += (_, e) => { if (e.Key == Avalonia.Input.Key.Escape) CloseFlyout(); };
         Opened += (_, _) =>
         {
@@ -63,10 +73,13 @@ public sealed class FlyoutWindow : Window
     }
 
     /// <summary>Opens on the screen under <paramref name="cursor"/> (physical pixels).</summary>
-    public void OpenFlyout(FlyoutOrigin origin, PixelPoint cursor)
+    public void OpenFlyout(FlyoutOrigin origin, PixelPoint cursor, bool pinned = false)
     {
-        if (IsOpen) { if (origin == FlyoutOrigin.Taskbar) Activate(); return; }
+        if (IsOpen) { if (origin == FlyoutOrigin.Taskbar || pinned) Activate(); return; }
         Origin = origin;
+        IsPinned = pinned;
+        _anchor = cursor;
+        _placed = false;
         _panel.BuildWidgets();
         _panel.RefreshHeader();
         _panel.Horizontal = origin == FlyoutOrigin.Top;
@@ -85,19 +98,20 @@ public sealed class FlyoutWindow : Window
             }
         }
 
-        ShowActivated = origin == FlyoutOrigin.Taskbar;
+        ShowActivated = origin == FlyoutOrigin.Taskbar || pinned;
         Opacity = 0;
         IsOpen = true;
 
         foreach (var w in _panel.Widgets) SafeRun(w.Start, "start");
         Show();
-        if (origin == FlyoutOrigin.Taskbar) Activate();
+        if (ShowActivated) Activate();
 
         // Size is known only after the first layout pass: place it then, and slide it in.
         Dispatcher.UIThread.Post(() =>
         {
             if (!IsOpen) return;
             PlaceAt(cursor);
+            _placed = true;
             Animate(opening: true);
         }, DispatcherPriority.Render);
     }
@@ -106,6 +120,7 @@ public sealed class FlyoutWindow : Window
     {
         if (!IsOpen) return;
         IsOpen = false;
+        IsPinned = false;
         ClosedAt = DateTime.UtcNow;
         Animate(opening: false, done: () =>
         {
@@ -167,6 +182,9 @@ public sealed class FlyoutWindow : Window
                 else { x = area.Right - size.Width + tuck; y = area.Bottom - size.Height + tuck; }
                 break;
         }
+        // Never let any part of the panel itself go off the working area.
+        x = Clamp(x, area.X - tuck, area.Right - size.Width + tuck);
+        y = Clamp(y, area.Y - tuck, area.Bottom - size.Height + tuck);
         Position = new PixelPoint(x, y);
     }
 

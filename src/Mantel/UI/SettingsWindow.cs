@@ -78,7 +78,8 @@ public sealed class SettingsWindow : Window
 
         var root = new Grid { ColumnDefinitions = new ColumnDefinitions("236,*") };
         root.Children.Add(BuildSidebar());
-        var content = new Border { Child = _scroll };
+        // The page scrolls below the title-bar strip (caption buttons live there), never under it.
+        var content = new Border { Child = _scroll, Margin = new Thickness(0, 40, 0, 0) };
         Grid.SetColumn(content, 1);
         root.Children.Add(content);
         Content = root;
@@ -191,7 +192,7 @@ public sealed class SettingsWindow : Window
             ColumnDefinitions = { new ColumnDefinition(GridLength.Star) { MaxWidth = 780 }, new ColumnDefinition(GridLength.Auto) },
         };
         column.Children.Add(page);
-        _scroll.Content = new Border { Padding = new Thickness(40, 44, 40, 40), Child = column };
+        _scroll.Content = new Border { Padding = new Thickness(40, 8, 40, 40), Child = column };
         if (!resetScroll) Dispatcher.UIThread.Post(() => _scroll.Offset = offset, DispatcherPriority.Loaded);
         else _scroll.Offset = default;
         SyncFromModel();

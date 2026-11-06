@@ -140,7 +140,7 @@ public sealed class WidgetWindow : Window
         var hwnd = TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
         if (hwnd == IntPtr.Zero) return;
         NativeMethods.MakeToolWindow(hwnd);
-        NativeMethods.SendToBottom(hwnd);
+        DesktopLayer.Pin(hwnd); // stays under every normal window, even when clicked or re-shown
     }
 
     private void SendToBottom()
