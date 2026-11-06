@@ -135,6 +135,9 @@ public static class ThemeManager
     /// <summary>Desktop widget size multiplier (1.0 = normal), set from Appearance.</summary>
     public static double WidgetScale { get; private set; } = 1.0;
 
+    /// <summary>Whether card and flyout borders are drawn (Appearance → Card borders).</summary>
+    public static bool Borders { get; private set; } = true;
+
     public static ThemeDef Current { get; private set; } = All[0];
 
     /// <summary>The accent in use right now (the theme's own, a custom color, or Amplite's).</summary>
@@ -145,7 +148,7 @@ public static class ThemeManager
     public static ThemeDef Find(string? id) => All.FirstOrDefault(t => t.Id == id) ?? All[0];
 
     /// <summary>Applies a theme's colors and shapes to every widget (styles read these as dynamic resources).</summary>
-    public static void Apply(Application app, string? themeId, string? accentOverride, int cardOpacity = 100, int widgetScale = 100)
+    public static void Apply(Application app, string? themeId, string? accentOverride, int cardOpacity = 100, int widgetScale = 100, bool borders = true)
     {
         var t = Find(themeId);
         Current = t;
@@ -157,7 +160,7 @@ public static class ThemeManager
         var bg = Color.Parse(t.CardBackground);
         r["Mantel.CardBackground"] = new SolidColorBrush(Color.FromArgb((byte)(bg.A * opacity), bg.R, bg.G, bg.B));
         r["Mantel.CardBorder"] = Brush(t.CardBorder);
-        r["Mantel.CardBorderThickness"] = new Thickness(t.CardBorderThickness);
+        r["Mantel.CardBorderThickness"] = new Thickness(borders ? t.CardBorderThickness : 0);
         r["Mantel.CardRadius"] = new CornerRadius(t.CardRadius);
         r["Mantel.CardPadding"] = t.CardPadding;
         r["Mantel.CardShadow"] = BoxShadows.Parse(t.CardShadow);
@@ -174,7 +177,8 @@ public static class ThemeManager
         var card = Color.Parse(t.CardBackground);
         var flyoutBg = t.Bare ? Color.Parse("#EB101114") : Color.FromArgb(Math.Max(card.A, (byte)0xF2), card.R, card.G, card.B);
         r["Mantel.FlyoutBackground"] = new SolidColorBrush(flyoutBg);
-        r["Mantel.FlyoutBorder"] = Brush(t.Bare ? "#22FFFFFF" : t.CardBorderThickness > 0 ? t.CardBorder : "#1AFFFFFF");
+        r["Mantel.FlyoutBorder"] = Brush(!borders ? "#00000000" : t.Bare ? "#22FFFFFF" : t.CardBorderThickness > 0 ? t.CardBorder : "#1AFFFFFF");
+        Borders = borders;
         r["Mantel.SectionBackground"] = Brush(t.IsLight ? "#0A000000" : t.Id == "terminal" ? "#0D39FF14" : "#0DFFFFFF");
         r["Mantel.FlyoutRadius"] = new CornerRadius(t.Bare ? 22 : t.CardRadius <= 0 ? 0 : t.CardRadius + 6);
         r["Mantel.SectionRadius"] = new CornerRadius(t.Bare ? 14 : Math.Max(0, t.CardRadius - 2));
@@ -200,7 +204,7 @@ public static class ThemeManager
         r["SystemAccentColorDark3"] = Shift(accent, -0.45);
         if (Current.Glow)
         {
-            r["Mantel.CardBorder"] = new SolidColorBrush(Color.FromArgb(0xC0, accent.R, accent.G, accent.B));
+            r["Mantel.CardBorder"] = new SolidColorBrush(Color.FromArgb(Borders ? (byte)0xC0 : (byte)0, accent.R, accent.G, accent.B));
             r["Mantel.CardShadow"] = new BoxShadows(new BoxShadow
             {
                 Blur = 22,

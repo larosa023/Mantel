@@ -38,8 +38,9 @@
     <Setter Property="BoxShadow" Value="{DynamicResource Mantel.CardShadow}" />
   </Style>
 
-  <!-- Unlocked: an accent outline shows the widgets can be dragged (dashed-looking on Bare). -->
-  <Style Selector="Border.card.unlocked">
+  <!-- Unlocked: hovering a widget outlines it in the accent to show it can be dragged.
+       Only on hover, so an unlocked desktop still looks clean (and Bare stays borderless). -->
+  <Style Selector="Border.card.unlocked:pointerover">
     <Setter Property="BorderBrush" Value="{DynamicResource Mantel.AccentSoft}" />
     <Setter Property="BorderThickness" Value="1" />
   </Style>

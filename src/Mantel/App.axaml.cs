@@ -150,7 +150,7 @@ public partial class App : Application
     private void ApplyTheme()
     {
         var settings = _store.Settings;
-        ThemeManager.Apply(this, settings.Theme, settings.Accent, settings.CardOpacity, settings.WidgetScale);
+        ThemeManager.Apply(this, settings.Theme, settings.Accent, settings.CardOpacity, settings.WidgetScale, settings.CardBorders);
 
         // "Match Amplite's accent": listen to Amplite and recolor live whenever its accent changes.
         var follow = settings.Accent == "amplite";

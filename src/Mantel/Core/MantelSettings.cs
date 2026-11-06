@@ -24,6 +24,9 @@ public sealed class MantelSettings
     /// <summary>How solid widget cards are, as a percentage of the theme's own (20–100).</summary>
     public int CardOpacity { get; set; } = 100;
 
+    /// <summary>Draw the theme's card and flyout borders. Off = borderless cards in every theme.</summary>
+    public bool CardBorders { get; set; } = true;
+
     public bool AutoUpdate { get; set; } = true;
 
     /// <summary>Also receive prerelease (beta) builds.</summary>

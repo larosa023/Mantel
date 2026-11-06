@@ -589,6 +589,8 @@ public sealed class SettingsWindow : Window
             Card(Icons.Resize, "Widget size", "How big desktop widgets are",
                 Segmented(new[] { ("85", "Small"), ("100", "Normal"), ("115", "Large"), ("130", "Huge") },
                     () => settings.WidgetScale.ToString(), v => { settings.WidgetScale = int.Parse(v); _store.Save(); _appearanceChanged(); })),
+            Card(Icons.Widgets, "Card borders", ThemeManager.Find(settings.Theme).Bare ? "Bare has no borders; this applies to the other themes" : "The outline around widgets and flyouts",
+                Toggle(() => settings.CardBorders, v => { settings.CardBorders = v; _store.Save(); _appearanceChanged(); })),
             Card(Icons.Palette, "Card opacity", "Lower lets more of your wallpaper show through",
                 Segmented(new[] { ("40", "40%"), ("60", "60%"), ("80", "80%"), ("100", "Solid") },
                     () => settings.CardOpacity.ToString(), v => { settings.CardOpacity = int.Parse(v); _store.Save(); _appearanceChanged(); })),
