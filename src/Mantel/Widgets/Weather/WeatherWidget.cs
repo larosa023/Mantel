@@ -60,11 +60,17 @@ public sealed class WeatherWidget : IWidget
             Children = { _condition, _range },
         };
 
-        var top = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Children = { _icon, _temp, info },
-        };
+        // Icon and temperature take what they need; the conditions get the rest of the width and
+        // wrap inside it, so big-number themes (Mono, Bare) can't push text past the card.
+        var top = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,*"), Width = Mantel.UI.WidgetCard.ContentWidth };
+        top.Children.Add(_icon);
+        Grid.SetColumn(_temp, 1);
+        top.Children.Add(_temp);
+        Grid.SetColumn(info, 2);
+        top.Children.Add(info);
+        _temp.VerticalAlignment = VerticalAlignment.Center;
+        _condition.TextWrapping = TextWrapping.Wrap;
+        _range.TextWrapping = TextWrapping.Wrap;
         _icon.Margin = new(0, 0, 10, 0);
         _icon.VerticalAlignment = VerticalAlignment.Center;
 
