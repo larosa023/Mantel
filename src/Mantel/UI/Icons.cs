@@ -47,6 +47,7 @@ public static class Icons
     public const string Motion = "M4 12h9 M4 7h5 M4 17h5 M13 7l5 5-5 5";
     public const string Keyboard = "M3 7h18v10H3z M7 10h.01 M11 10h.01 M15 10h.01 M7 13h.01 M17 13h.01 M9 14.5h6";
     public const string Monitor = "M3 5h18v11H3z M9 20h6 M12 16v4";
+    public const string News = "M4 5h13v14H6a2 2 0 0 1-2-2z M17 9h3v8a2 2 0 0 1-2 2 M7.5 9h6 M7.5 12.5h6 M7.5 16h4";
     public const string Layers = "M12 4l9 5-9 5-9-5z M3 14l9 5 9-5";
     public const string Download = "M12 4v11 M7.5 10.5 12 15l4.5-4.5 M5 20h14";
     public const string Upload = "M12 15V4 M7.5 8.5 12 4l4.5 4.5 M5 20h14";
@@ -68,6 +69,8 @@ public static class Icons
         "calendar" => Calendar,
         "notes" => Note,
         "launcher" => Launcher,
+        "timer" => Timer,
+        "headlines" => News,
         _ => Widgets,
     };
 

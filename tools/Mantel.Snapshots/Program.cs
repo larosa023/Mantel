@@ -58,6 +58,18 @@ foreach (var theme in ThemeManager.All)
 
 ThemeManager.Apply(app, "glass", null);
 
+// --- Newest widgets, larger, in the default theme ----------------------------------------------
+
+Run("widgets-new", () =>
+{
+    var widgets = Scenes.DesktopWidgets();
+    var window = Scenes.Desktop(widgets, "Timer, Headlines, PC stats with top apps", Scenes.NewColumns);
+    // Only the shown widgets run; the rest are just constructed.
+    var shown = Scenes.NewColumns.SelectMany(c => c).Select(i => widgets[i]).ToList();
+    Scenes.Capture(window, shown, Path.Combine(outDir, "widgets-new.png"), settleMs: 8000);
+    foreach (var w in widgets.Except(shown)) w.Dispose();
+});
+
 // --- Settings window, every page -------------------------------------------------------------
 
 Run("settings", () =>
@@ -129,6 +141,9 @@ internal static class Scenes
             Make("disks"),
             Make("calendar"),
             Make("notes", new() { ["title"] = "To do", ["text"] = "Send the Holmdel takeoff to Mike\nCheck rebar quantities on sheet S-201\nBid walk Thursday 9 AM" }),
+            Make("timer", new() { ["mode"] = "pomodoro", ["_started"] = DateTime.UtcNow.AddMinutes(-9).Ticks.ToString(), ["_banked"] = "0" }),
+            Make("headlines", new() { ["feed"] = "espn-nba", ["count"] = "5" }),
+            Make("system-stats", new() { ["processes"] = "3", ["uptime"] = "true" }),
             Make("launcher", new() { ["title"] = "Apps", ["apps"] = "Amplite|amplite.exe\nFullcourt|https://nbafullcourty.netlify.app\nBluebeam Revu|revu.exe\nExcel|excel.exe\nEmber|ember.exe\nDownloads|C:\\Users\nPlanSwift|planswift.exe" }),
         };
     }
@@ -139,9 +154,12 @@ internal static class Scenes
     };
 
     /// <summary>Lays widget cards out in three columns over the wallpaper.</summary>
-    public static Window Desktop(IReadOnlyList<IWidget> widgets, string caption)
+    public static readonly int[][] MainColumns = { new[] { 0, 1 }, new[] { 2, 3, 4 }, new[] { 5, 6, 7 }, new[] { 8, 13, 9 } };
+    public static readonly int[][] NewColumns = { new[] { 10 }, new[] { 11 }, new[] { 12 } };
+
+    public static Window Desktop(IReadOnlyList<IWidget> widgets, string caption, int[][]? layout = null)
     {
-        var columns = new[] { new[] { 0, 1 }, new[] { 2, 3, 4 }, new[] { 5, 6, 7 }, new[] { 8, 10, 9 } };
+        var columns = layout ?? MainColumns;
         var grid = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(40, 56, 40, 40) };
         foreach (var col in columns)
         {

@@ -2,12 +2,14 @@ using Mantel.Widgets.Calendar;
 using Mantel.Widgets.Clock;
 using Mantel.Widgets.Countdown;
 using Mantel.Widgets.Disks;
+using Mantel.Widgets.Headlines;
 using Mantel.Widgets.Launcher;
 using Mantel.Widgets.Network;
 using Mantel.Widgets.Notes;
 using Mantel.Widgets.NowPlaying;
 using Mantel.Widgets.Scores;
 using Mantel.Widgets.SystemStats;
+using Mantel.Widgets.Timer;
 using Mantel.Widgets.Weather;
 
 namespace Mantel.Core;
@@ -47,8 +49,25 @@ public static class WidgetRegistry
             Subtitle = WeatherWidget.Subtitle,
         },
 
-        new WidgetDescriptor("system-stats", "PC stats", "CPU and memory usage",
-            EnabledByDefault: true, Create: s => new SystemStatsWidget(s)),
+        new WidgetDescriptor("system-stats", "PC stats", "CPU and memory, top apps and uptime",
+            EnabledByDefault: true, Create: s => new SystemStatsWidget(s))
+        {
+            BuildOptions = SystemStatsWidget.BuildOptions,
+        },
+
+        new WidgetDescriptor("timer", "Timer", "Countdown, stopwatch or Pomodoro",
+            EnabledByDefault: false, Create: s => new TimerWidget(s))
+        {
+            BuildOptions = TimerWidget.BuildOptions,
+            Subtitle = TimerWidget.Subtitle,
+        },
+
+        new WidgetDescriptor("headlines", "Headlines", "The latest news from ESPN, The Verge or any feed",
+            EnabledByDefault: false, Create: s => new HeadlinesWidget(s))
+        {
+            BuildOptions = HeadlinesWidget.BuildOptions,
+            Subtitle = HeadlinesWidget.Subtitle,
+        },
 
         new WidgetDescriptor("countdown", "Countdown", "Days, hours and minutes until a date",
             EnabledByDefault: false, Create: s => new CountdownWidget(s))
