@@ -62,7 +62,7 @@ public static class WidgetRegistry
             Subtitle = TimerWidget.Subtitle,
         },
 
-        new WidgetDescriptor("headlines", "Headlines", "The latest news from ESPN, The Verge or any feed",
+        new WidgetDescriptor("headlines", "Headlines", "The latest NBA, tech or world news, or any feed",
             EnabledByDefault: false, Create: s => new HeadlinesWidget(s))
         {
             BuildOptions = HeadlinesWidget.BuildOptions,

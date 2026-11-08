@@ -19,9 +19,9 @@ public sealed class HeadlinesWidget : IWidget
 {
     public static readonly (string Id, string Name, string Url)[] Presets =
     {
-        ("espn-nba", "ESPN NBA", "https://www.espn.com/espn/rss/nba/news"),
-        ("cbs-nba", "CBS Sports NBA", "https://www.cbssports.com/rss/headlines/nba/"),
         ("yahoo-nba", "Yahoo Sports NBA", "https://sports.yahoo.com/nba/rss/"),
+        ("cbs-nba", "CBS Sports NBA", "https://www.cbssports.com/rss/headlines/nba/"),
+        ("espn-nba", "ESPN NBA", "https://www.espn.com/espn/rss/nba/news"),
         ("espn", "ESPN top stories", "https://www.espn.com/espn/rss/news"),
         ("verge", "The Verge", "https://www.theverge.com/rss/index.xml"),
         ("bbc", "BBC News", "https://feeds.bbci.co.uk/news/rss.xml"),
@@ -54,7 +54,7 @@ public sealed class HeadlinesWidget : IWidget
         return http;
     }
 
-    private string FeedSetting => _settings.Options.TryGetValue("feed", out var f) && !string.IsNullOrWhiteSpace(f) ? f.Trim() : "espn-nba";
+    private string FeedSetting => _settings.Options.TryGetValue("feed", out var f) && !string.IsNullOrWhiteSpace(f) ? f.Trim() : "yahoo-nba";
     private int Count => int.TryParse(_settings.Options.TryGetValue("count", out var c) ? c : "5", out var n) ? Math.Clamp(n, 1, 12) : 5;
 
     private (string Name, string Url) Feed
@@ -184,7 +184,7 @@ public sealed class HeadlinesWidget : IWidget
     {
         var choices = Presets.Select(p => (p.Id, p.Name)).ToList();
         choices.Add(("custom", "Custom feed address…"));
-        var current = ctx.Get("feed", "espn-nba");
+        var current = ctx.Get("feed", "yahoo-nba");
         var isCustom = !Presets.Any(p => p.Id == current);
 
         var custom = new TextBox { Text = isCustom ? current : "", Watermark = "https://example.com/feed.xml", IsVisible = isCustom };
@@ -211,7 +211,7 @@ public sealed class HeadlinesWidget : IWidget
 
     public static string? Subtitle(WidgetInstanceSettings s)
     {
-        var feed = s.Options.TryGetValue("feed", out var f) ? f : "espn-nba";
+        var feed = s.Options.TryGetValue("feed", out var f) ? f : "yahoo-nba";
         return Presets.FirstOrDefault(p => p.Id == feed).Name ?? (Uri.TryCreate(feed, UriKind.Absolute, out var u) ? u.Host : "Headlines");
     }
 }

@@ -10,15 +10,28 @@ Clean, lightweight desktop widgets for Windows. A Rainmeter alternative that loo
 | Now Playing | Track, art and progress with previous/play/next. With [Amplite](https://github.com/larosa023/amplite) running it also switches **EQ presets**, changes volume on scroll and seeks on click. Otherwise it works with Spotify, browsers and most players. |
 | Scores | Live NBA, WNBA and college games from [Fullcourt](https://github.com/larosa023/fullcourt). Click a game to open it there. |
 | Weather | Current conditions, high/low, feels-like, wind and a 3-day forecast (Open-Meteo, no API key). |
-| PC stats | CPU and memory usage. |
+| PC stats | CPU (with history) and memory, plus optional top apps by memory and uptime. |
 | Countdown | Days, hours and minutes to a date. |
 | Disk space | Free space on each drive. |
 | Network | Live download and upload speed, with a history graph. |
 | Calendar | This month with today highlighted; flip months, optional week numbers. |
 | Notes | A sticky note you type on right on the desktop; saves itself. |
 | App launcher | Lettered tiles for your favorite apps, folders and files. |
+| Timer | Countdown with one-click presets, stopwatch, or Pomodoro that rolls focus into breaks, with a chime when time's up. |
+| Headlines | The latest from Yahoo Sports or CBS Sports NBA, ESPN, The Verge, BBC, NPR, Hacker News, ENR or any RSS/Atom feed. |
 
 Any widget can be added more than once (a scores widget per league, a clock per time zone), turned on or off from the tray menu or Settings, and configured in Settings. A widget that's off is never created, so it costs no CPU, memory or network. Widgets pause and hide while a full-screen game or video runs.
+
+## Customizing
+
+- **Per widget:** its own size and background (theme card, glass, or none at all), in the widget's page in Settings.
+- **Layouts:** save your whole setup (widgets and positions, flyouts, theme) under a name and switch from the tray. Export and import settings as a backup.
+- **Hide all widgets** from the tray or with Ctrl + Alt + W (changeable).
+- **Click-through when locked:** clicks pass through locked widgets to the desktop.
+
+## Light by design
+
+Widgets pause (no timers, no network) while the PC is locked, the screens are off, or a full-screen app is running. The clock wakes once a minute, the timer only while running. Settings → Updates & about shows what Mantel is using right now.
 
 ## Flyouts
 

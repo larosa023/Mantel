@@ -12,7 +12,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- Bump this and push to main to ship a release (see .github/workflows/release.yml). -->
-    <Version>0.5.5</Version>
+    <Version>0.6.0</Version>
     <Product>Mantel</Product>
     <Description>Clean, lightweight desktop widgets for Windows.</Description>
   </PropertyGroup>
