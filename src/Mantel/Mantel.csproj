@@ -17,6 +17,19 @@
     <Description>Clean, lightweight desktop widgets for Windows.</Description>
   </PropertyGroup>
 
+  <!-- Footprint: Mantel sits in the background all day, so favor low memory and a fast start. -->
+  <PropertyGroup>
+    <!-- Workstation GC without the background thread: smaller heaps for a small app. -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <!-- Give memory back to Windows sooner after a spike (e.g. opening Settings). -->
+    <GarbageCollectionAdaptationMode>1</GarbageCollectionAdaptationMode>
+    <TieredPGO>true</TieredPGO>
+    <!-- Precompiled code in release builds: starts noticeably faster at login. -->
+    <PublishReadyToRun Condition="'$(Configuration)' == 'Release'">true</PublishReadyToRun>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>

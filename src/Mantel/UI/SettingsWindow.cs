@@ -48,6 +48,7 @@ public sealed class SettingsWindow : Window
     private string? _detailFlyoutId;
     private string? _detailReturnFlyoutId; // a widget detail opened from inside a flyout goes back there
     private bool _syncing;
+    private DispatcherTimer? _pageTimer; // live readouts on the current page
 
     public SettingsWindow(SettingsStore store, WidgetManager widgets, UpdateService updates, Action appearanceChanged)
     {
@@ -89,6 +90,7 @@ public sealed class SettingsWindow : Window
         _updates.StateChanged += SyncFromModel;
         Closed += (_, _) =>
         {
+            _pageTimer?.Stop();
             _widgets.Changed -= SyncFromModel;
             _widgets.StructureChanged -= Rerender;
             _updates.StateChanged -= SyncFromModel;
@@ -157,6 +159,8 @@ public sealed class SettingsWindow : Window
     {
         var offset = _scroll.Offset;
         _syncers.Clear();
+        _pageTimer?.Stop();
+        _pageTimer = null;
 
         foreach (var (id, button) in _navButtons) button.Classes.Set("selected", id == _page);
 
@@ -795,6 +799,46 @@ public sealed class SettingsWindow : Window
             Card(Icons.Info, "Beta updates", "Get new features early. They can be rougher around the edges.",
                 Toggle(() => _store.Settings.BetaUpdates, v => { _store.Settings.BetaUpdates = v; _store.Save(); })),
         }));
+
+        // What Mantel itself costs, live while this page is open.
+        var usage = Muted("Measuring…", 12.5);
+        var process = System.Diagnostics.Process.GetCurrentProcess();
+        var lastCpu = process.TotalProcessorTime;
+        var lastAt = DateTime.UtcNow;
+        void Measure()
+        {
+            process.Refresh();
+            var now = DateTime.UtcNow;
+            var cpu = process.TotalProcessorTime;
+            var pct = (cpu - lastCpu).TotalMilliseconds / Math.Max(1, (now - lastAt).TotalMilliseconds) / Environment.ProcessorCount * 100;
+            lastCpu = cpu;
+            lastAt = now;
+            var mb = process.PrivateMemorySize64 / 1024d / 1024d;
+            var paused = _widgets.PauseReason is { } why ? $" · Paused: {why.ToLowerInvariant()}" : "";
+            usage.Text = $"{mb:0} MB of memory · {pct:0.0}% CPU · {_widgets.Instances.Count(w => w.Enabled)} widgets on{paused}";
+        }
+        _pageTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+        _pageTimer.Tick += (_, _) => Measure();
+        _pageTimer.Start();
+        Measure();
+
+        page.Children.Add(Group("Footprint"));
+        var footprint = new Border
+        {
+            Padding = new Thickness(16, 12),
+            Child = new StackPanel
+            {
+                Spacing = 2,
+                Children =
+                {
+                    new TextBlock { Text = "Mantel right now", FontSize = 14 },
+                    usage,
+                    Muted("Widgets pause automatically while the PC is locked, the screens are off, or a full-screen app is running.", 12.5),
+                },
+            },
+        };
+        footprint.Classes.Add("setting-card");
+        page.Children.Add(footprint);
 
         page.Children.Add(Group("About"));
         page.Children.Add(Cards(new[]

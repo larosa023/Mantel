@@ -54,6 +54,13 @@ public sealed class ClockWidget : TimedWidget
     protected override void Refresh()
     {
         var now = TimeZoneInfo.ConvertTime(DateTime.Now, Zone);
+
+        // Wake only when the display can change: every second with seconds shown, otherwise
+        // once a minute, just after the minute turns over.
+        var local = DateTime.Now;
+        Interval = ShowSeconds
+            ? TimeSpan.FromMilliseconds(1000 - local.Millisecond + 15)
+            : TimeSpan.FromMilliseconds((60 - local.Second) * 1000 - local.Millisecond + 50);
         var key = now.ToString(ShowSeconds ? "yyyyMMddHHmmss" : "yyyyMMddHHmm", CultureInfo.InvariantCulture);
         if (key == _lastKey) return; // only touch the UI when the display actually changes
         _lastKey = key;

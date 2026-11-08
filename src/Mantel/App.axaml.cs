@@ -139,7 +139,16 @@ public partial class App : Application
             return;
         }
         _settingsWindow = new SettingsWindow(_store, _widgets, _updates, OnAppearanceChanged);
-        _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+        _settingsWindow.Closed += (_, _) =>
+        {
+            _settingsWindow = null;
+            // Settings is the heaviest thing Mantel shows; hand its memory back once it's closed.
+            DispatcherTimer.RunOnce(() =>
+            {
+                GC.Collect(2, GCCollectionMode.Optimized, blocking: false, compacting: true);
+                GC.WaitForPendingFinalizers();
+            }, TimeSpan.FromSeconds(3));
+        };
         _settingsWindow.Show();
     }
 

@@ -12,6 +12,11 @@ public sealed class WidgetManager
 {
     private readonly SettingsStore _store;
     private readonly FullscreenWatcher _fullscreen = new();
+    private readonly SessionWatcher _session = new();
+    private bool _suspended;
+
+    /// <summary>Widgets hidden on purpose (tray "Hide widgets" or its shortcut).</summary>
+    public bool HiddenByUser { get; private set; }
     private readonly Dictionary<string, (IWidget Widget, WidgetWindow Window)> _active = new();
 
     /// <summary>Raised when a widget is turned on/off or the lock state changes.</summary>
@@ -33,8 +38,9 @@ public sealed class WidgetManager
     public WidgetManager(SettingsStore store)
     {
         _store = store;
-        _fullscreen.Changed += OnFullscreenChanged;
-        Flyouts = new FlyoutManager(store.Settings, s => BuildMenu(s), () => _fullscreen.IsFullscreen);
+        _fullscreen.Changed += _ => UpdateSuspension();
+        _session.Changed += UpdateSuspension;
+        Flyouts = new FlyoutManager(store.Settings, s => BuildMenu(s), () => _fullscreen.IsFullscreen || _session.IsAway);
     }
 
     private MantelSettings Settings => _store.Settings;
@@ -57,6 +63,7 @@ public sealed class WidgetManager
         foreach (var s in Settings.Widgets.Where(w => w.Enabled && OnDesktop(w)).ToList())
             Show(s, index++);
         _fullscreen.SetEnabled(Settings.HideOnFullscreen);
+        _session.Start();
         Flyouts.Rebuild();
     }
 
@@ -222,12 +229,14 @@ public sealed class WidgetManager
     {
         Settings.HideOnFullscreen = hide;
         _fullscreen.SetEnabled(hide);
+        UpdateSuspension();
         _store.Save();
     }
 
     public void CloseAll()
     {
         _fullscreen.SetEnabled(false);
+        _session.Dispose();
         Flyouts.Dispose();
         foreach (var id in _active.Keys.ToList()) Hide(id);
     }
@@ -249,7 +258,7 @@ public sealed class WidgetManager
             window.PlaceOnScreen(fallbackIndex);
             _active[s.Id] = (widget, window);
 
-            if (_fullscreen.IsFullscreen) return; // shown (and started) when the full-screen app goes away
+            if (_suspended) return; // shown (and started) when whatever hid them goes away
             window.Show();
             widget.Start();
         }
@@ -274,19 +283,43 @@ public sealed class WidgetManager
         entry.Window.Close();
     }
 
-    private void OnFullscreenChanged(bool fullscreen)
+    /// <summary>Shows or hides every desktop widget (tray "Hide widgets", Ctrl+Alt+W).</summary>
+    public void SetHiddenByUser(bool hidden)
     {
-        if (fullscreen) Flyouts.CloseAll();
+        if (HiddenByUser == hidden) return;
+        HiddenByUser = hidden;
+        UpdateSuspension();
+        Changed?.Invoke();
+    }
+
+    /// <summary>
+    /// Widgets stop all work and hide while nobody needs them: a full-screen app is running, the
+    /// PC is locked or its screens are off, or they were hidden on purpose.
+    /// </summary>
+    private void UpdateSuspension()
+    {
+        var suspend = (_fullscreen.IsFullscreen && Settings.HideOnFullscreen) || _session.IsAway || HiddenByUser;
+        if (suspend == _suspended) return;
+        _suspended = suspend;
+
+        if (suspend) Flyouts.CloseAll();
         foreach (var (widget, window) in _active.Values)
         {
             try
             {
-                if (fullscreen) { widget.Stop(); window.Hide(); }
+                if (suspend) { widget.Stop(); window.Hide(); }
                 else { window.Show(); widget.Start(); }
             }
-            catch (Exception ex) { Log.Error("Full-screen pause/resume failed for a widget.", ex); }
+            catch (Exception ex) { Log.Error("Pausing or resuming a widget failed.", ex); }
         }
     }
+
+    /// <summary>Is Mantel paused right now, and why (shown in Settings).</summary>
+    public string? PauseReason =>
+        HiddenByUser ? "Widgets are hidden" :
+        _session.IsLocked ? "PC is locked" :
+        _session.IsDisplayOff ? "Screens are off" :
+        _fullscreen.IsFullscreen && Settings.HideOnFullscreen ? "A full-screen app is running" : null;
 
     private ContextMenu BuildMenu(WidgetInstanceSettings s)
     {
