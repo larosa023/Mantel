@@ -70,6 +70,16 @@ Run("widgets-new", () =>
     foreach (var w in widgets.Except(shown)) w.Dispose();
 });
 
+// --- Which news feeds load from a server (picks a reliable default) --------------------------
+
+Run("feeds", () =>
+{
+    IWidget Feed(string id) => WidgetRegistry.Find("headlines")!.Create(new WidgetInstanceSettings { Type = "headlines", Enabled = true, Options = new() { ["feed"] = id, ["count"] = "3" } });
+    var widgets = new List<IWidget> { Feed("espn-nba"), Feed("cbs-nba"), Feed("yahoo-nba"), Feed("verge") };
+    var window = Scenes.Desktop(widgets, "Feed check", new[] { new[] { 0, 1 }, new[] { 2, 3 } });
+    Scenes.Capture(window, widgets, Path.Combine(outDir, "feeds.png"), settleMs: 9000);
+});
+
 // --- Settings window, every page -------------------------------------------------------------
 
 Run("settings", () =>

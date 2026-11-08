@@ -20,6 +20,8 @@ public sealed class HeadlinesWidget : IWidget
     public static readonly (string Id, string Name, string Url)[] Presets =
     {
         ("espn-nba", "ESPN NBA", "https://www.espn.com/espn/rss/nba/news"),
+        ("cbs-nba", "CBS Sports NBA", "https://www.cbssports.com/rss/headlines/nba/"),
+        ("yahoo-nba", "Yahoo Sports NBA", "https://sports.yahoo.com/nba/rss/"),
         ("espn", "ESPN top stories", "https://www.espn.com/espn/rss/news"),
         ("verge", "The Verge", "https://www.theverge.com/rss/index.xml"),
         ("bbc", "BBC News", "https://feeds.bbci.co.uk/news/rss.xml"),
