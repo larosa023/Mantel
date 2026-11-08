@@ -1,0 +1,85 @@
+2026-11-08 03:22:10 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:22:17 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:22:24 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:22:32 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:22:39 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:22:47 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:22:54 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:23:02 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:23:09 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:23:17 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:23:24 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:23:32 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:23:39 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:23:47 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:23:54 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:24:01 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:24:09 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:24:16 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:24:24 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:24:31 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:24:40 ERROR Headlines from https://www.espn.com/espn/rss/nba/news failed. InvalidDataException: The feed came back empty.
+   at Mantel.Widgets.Headlines.HeadlinesWidget.Parse(String xml)+MoveNext() in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 128
+   at System.Linq.Enumerable.IEnumerableSkipTakeIterator`1.ToList()
+   at Mantel.Widgets.Headlines.HeadlinesWidget.LoopAsync(CancellationToken ct) in D:\a\Mantel\Mantel\src\Mantel\Widgets\Headlines\HeadlinesWidget.cs:line 104
+2026-11-08 03:24:49 INFO Updates unavailable: No VelopackLocator has been set. Either call VelopackApp.Build() or provide IVelopackLocator as a method parameter.
