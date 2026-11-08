@@ -41,8 +41,14 @@ public sealed class HeadlinesWidget : IWidget
 
     private static HttpClient CreateClient()
     {
-        var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-        http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Mantel", AppInfo.Version));
+        var http = new HttpClient(new HttpClientHandler { AutomaticDecompression = System.Net.DecompressionMethods.All })
+        {
+            Timeout = TimeSpan.FromSeconds(15),
+        };
+        // Some publishers (ESPN) send an empty page to anything that doesn't look like a browser.
+        http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36");
+        http.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.5");
         return http;
     }
 
@@ -116,6 +122,8 @@ public sealed class HeadlinesWidget : IWidget
     /// <summary>RSS 2.0 (&lt;item&gt;) and Atom (&lt;entry&gt;), whichever the feed uses.</summary>
     private static IEnumerable<Item> Parse(string xml)
     {
+        xml = xml.Trim().TrimStart('\uFEFF');
+        if (xml.Length == 0) throw new InvalidDataException("The feed came back empty.");
         var doc = XDocument.Parse(xml);
         foreach (var e in doc.Descendants().Where(e => e.Name.LocalName is "item" or "entry"))
         {

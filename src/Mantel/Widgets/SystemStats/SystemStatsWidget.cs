@@ -73,7 +73,9 @@ public sealed class SystemStatsWidget : TimedWidget
         var up = TimeSpan.FromMilliseconds(Environment.TickCount64);
         return up.TotalDays >= 1
             ? $"Up {(int)up.TotalDays} day{((int)up.TotalDays == 1 ? "" : "s")}, {up.Hours} hr{(up.Hours == 1 ? "" : "s")}"
-            : $"Up {up.Hours} hr{(up.Hours == 1 ? "" : "s")}, {up.Minutes} min";
+            : up.Hours >= 1
+                ? $"Up {up.Hours} hr{(up.Hours == 1 ? "" : "s")}, {up.Minutes} min"
+                : $"Up {up.Minutes} min";
     }
 
     public static Control BuildOptions(WidgetOptionsContext ctx) =>
