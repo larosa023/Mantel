@@ -19,13 +19,14 @@ namespace Mantel.UI;
 public sealed class SettingsWindow : Window
 {
     /// <summary>Every page, in sidebar order, plus the two detail pages (for screenshots).</summary>
-    public static readonly string[] PageNames = { "widgets", "widget-detail", "flyouts", "flyout-detail", "appearance", "general", "updates" };
+    public static readonly string[] PageNames = { "widgets", "widget-detail", "flyouts", "flyout-detail", "appearance", "layouts", "general", "updates" };
 
     private static readonly (string Id, string Title, string Icon)[] Nav =
     {
         ("widgets", "Widgets", Icons.Widgets),
         ("flyouts", "Flyouts", Icons.Flyout),
         ("appearance", "Appearance", Icons.Palette),
+        ("layouts", "Layouts", Icons.Layers),
         ("general", "General", Icons.Sliders),
         ("updates", "Updates & about", Icons.Update),
     };
@@ -178,6 +179,7 @@ public sealed class SettingsWindow : Window
                 {
                     "flyouts" => FlyoutsPage(),
                     "appearance" => AppearancePage(),
+                    "layouts" => LayoutsPage(),
                     "general" => GeneralPage(),
                     "updates" => UpdatesPage(),
                     _ => WidgetsPage(),
@@ -325,6 +327,20 @@ public sealed class SettingsWindow : Window
             Card(Icons.Check, "Show this widget", null, Toggle(() => _widgets.IsEnabled(id), v => _widgets.SetEnabled(id, v))),
             Card(Icons.Flyout, "Show on", "The desktop, or inside one of your flyouts", where),
         }));
+
+        if (w.FlyoutId is null)
+        {
+            page.Children.Add(Group("Look"));
+            page.Children.Add(Cards(new[]
+            {
+                Card(Icons.Resize, "Size", "Overrides Appearance → Widget size for this widget",
+                    Segmented(new[] { ("0", "Default"), ("85", "Small"), ("100", "Normal"), ("115", "Large"), ("130", "Huge") },
+                        () => w.Scale.ToString(), v => { w.Scale = int.Parse(v); _widgets.Reload(id); })),
+                Card(Icons.Palette, "Background", "Glass is half as solid; None leaves just the content on your wallpaper",
+                    Segmented(new[] { ("theme", "Theme"), ("glass", "Glass"), ("none", "None") },
+                        () => w.Background, v => { w.Background = v; _widgets.Reload(id); })),
+            }));
+        }
 
         if (d.BuildOptions is not null)
         {
@@ -718,6 +734,99 @@ public sealed class SettingsWindow : Window
         return new StackPanel { Children = { wallpaper, title, desc } };
     }
 
+    // --- Layouts -------------------------------------------------------------------------------------
+
+    private Control LayoutsPage()
+    {
+        var page = Page("Layouts", "Save your whole setup (widgets and where they sit, flyouts, theme) and switch between setups from the tray.");
+
+        var name = new TextBox { Watermark = "Name, e.g. Work or Game night", MinWidth = 240 };
+        var save = new Button { Content = WithIcon(Icons.Plus, "Save current setup") };
+        save.Classes.Add("primary");
+        void Save()
+        {
+            var n = name.Text?.Trim();
+            if (string.IsNullOrEmpty(n)) { name.Focus(); return; }
+            _widgets.SaveLayout(n);
+            name.Text = "";
+        }
+        save.Click += (_, _) => Save();
+        name.KeyDown += (_, e) => { if (e.Key == Key.Enter) Save(); };
+
+        page.Children.Add(Group("Save"));
+        page.Children.Add(Cards(new[]
+        {
+            Card(Icons.Layers, "Save the current setup", "Saving with an existing name updates that layout",
+                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { name, save } }),
+        }));
+
+        page.Children.Add(Group("Saved layouts"));
+        if (_widgets.Layouts.Count == 0)
+            page.Children.Add(EmptyCard("No layouts yet", "Set things up the way you like, then save it above."));
+        else
+        {
+            page.Children.Add(Cards(_widgets.Layouts.OrderBy(l => l.Name).Select(layout =>
+            {
+                var l = layout;
+                var count = l.Widgets.Count(w => w.Enabled && w.FlyoutId is null);
+                var theme = ThemeManager.Find(l.Theme).Name;
+                var apply = new Button { Content = "Switch to it" };
+                apply.Classes.Add("primary");
+                apply.Click += (_, _) => _widgets.ApplyLayout(l);
+                var update = IconButton(Icons.Download, "Update with the current setup", () => _widgets.SaveLayout(l.Name));
+                var delete = IconButton(Icons.Trash, "Delete", () => _widgets.DeleteLayout(l));
+                var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { update, delete, apply } };
+                return Card(Icons.Layers, l.Name, $"{count} widget{(count == 1 ? "" : "s")} on the desktop · {theme} · saved {l.SavedAt:MMM d, h:mm tt}", buttons);
+            })));
+        }
+
+        // Backup: the whole settings file out and back in.
+        var export = new Button { Content = WithIcon(Icons.Upload, "Export…") };
+        export.Classes.Add("ghost");
+        export.Click += async (_, _) =>
+        {
+            var file = await StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+            {
+                Title = "Export Mantel settings",
+                SuggestedFileName = $"Mantel settings {DateTime.Now:yyyy-MM-dd}.json",
+                DefaultExtension = "json",
+            });
+            if (file is null) return;
+            try
+            {
+                await using var stream = await file.OpenWriteAsync();
+                await System.Text.Json.JsonSerializer.SerializeAsync(stream, _store.Settings, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            }
+            catch (Exception ex) { Log.Error("Export failed.", ex); }
+        };
+        var import = new Button { Content = WithIcon(Icons.Download, "Import…") };
+        import.Classes.Add("ghost");
+        import.Click += async (_, _) =>
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+            {
+                Title = "Import Mantel settings",
+                FileTypeFilter = new[] { new Avalonia.Platform.Storage.FilePickerFileType("Mantel settings") { Patterns = new[] { "*.json" } } },
+            });
+            if (files.Count == 0) return;
+            try
+            {
+                await using var stream = await files[0].OpenReadAsync();
+                var imported = await System.Text.Json.JsonSerializer.DeserializeAsync<MantelSettings>(stream);
+                if (imported is not null) _widgets.Import(imported);
+            }
+            catch (Exception ex) { Log.Error("Import failed.", ex); }
+        };
+
+        page.Children.Add(Group("Backup"));
+        page.Children.Add(Cards(new[]
+        {
+            Card(Icons.Upload, "Export or import all settings", "A single file you can keep as a backup or move to another PC",
+                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { export, import } }),
+        }));
+        return page;
+    }
+
     // --- General and updates -----------------------------------------------------------------------
 
     private Control GeneralPage()
@@ -730,6 +839,23 @@ public sealed class SettingsWindow : Window
             Card(Icons.Widgets, "Lock widget positions", "Turn off to drag widgets around your desktop", Toggle(() => _widgets.Locked, v => _widgets.SetLocked(v))),
             Card(Icons.Edge, "Snap to grid and screen edges", "Dragged widgets line up neatly", Toggle(() => _widgets.SnapToGrid, v => _widgets.SetSnapToGrid(v))),
             Card(Icons.Flyout, "Hide during full-screen apps", "Games, videos and presentations. Widgets pause while hidden.", Toggle(() => _widgets.HideOnFullscreen, v => _widgets.SetHideOnFullscreen(v))),
+            Card(Icons.Pointer, "Click-through when locked", "Clicks pass through locked widgets to the desktop. Use the tray to unlock them again.", Toggle(() => _widgets.ClickThrough, v => _widgets.SetClickThrough(v))),
+        }));
+
+        var hideKeys = new List<string> { "" };
+        hideKeys.AddRange(Hotkeys.Keys);
+        var hideCombo = new ComboBox { MinWidth = 170 };
+        foreach (var k in hideKeys) hideCombo.Items.Add(new ComboBoxItem { Content = Hotkeys.Describe(k) });
+        hideCombo.SelectedIndex = Math.Max(0, hideKeys.IndexOf(_widgets.HideAllHotkey));
+        hideCombo.SelectionChanged += (_, _) =>
+        {
+            if (hideCombo.SelectedIndex >= 0 && hideKeys[hideCombo.SelectedIndex] != _widgets.HideAllHotkey)
+                _widgets.SetHideAllHotkey(hideKeys[hideCombo.SelectedIndex]);
+        };
+        page.Children.Add(Group("Shortcuts"));
+        page.Children.Add(Cards(new[]
+        {
+            Card(Icons.EyeOff, "Hide or show all widgets", "Also in the tray menu. Flyout shortcuts are set on each flyout's page.", hideCombo),
         }));
 
         page.Children.Add(Group("Startup"));

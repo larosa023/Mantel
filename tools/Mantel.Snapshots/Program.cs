@@ -272,6 +272,8 @@ internal static class Scenes
         var weather = s.Widgets.First(w => w.Type == "weather" && w.FlyoutId is null);
         weather.Enabled = true;
         foreach (var (k, v) in Holmdel()) weather.Options[k] = v;
+        s.Layouts.Add(new SavedLayout { Name = "Work", Theme = "glass", Widgets = s.Widgets.ToList(), SavedAt = DateTime.Now.AddDays(-1) });
+        s.Layouts.Add(new SavedLayout { Name = "Game night", Theme = "synthwave", Widgets = s.Widgets.Take(3).ToList(), SavedAt = DateTime.Now.AddHours(-3) });
         return s;
     }
 }

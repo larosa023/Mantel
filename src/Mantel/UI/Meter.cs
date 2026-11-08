@@ -1,5 +1,8 @@
+using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Layout;
+using Layoutable = Avalonia.Layout.Layoutable;
 
 namespace Mantel.UI;
 
@@ -19,6 +22,11 @@ public sealed class Meter
         title.Classes.Add("label");
         _value.Classes.Add("value");
         _fill.Classes.Add("fill");
+        // Readings glide to their new value instead of jumping.
+        _fill.Transitions = new Transitions
+        {
+            new DoubleTransition { Property = Layoutable.WidthProperty, Duration = TimeSpan.FromMilliseconds(450), Easing = new CubicEaseOut() },
+        };
 
         var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         header.Children.Add(title);

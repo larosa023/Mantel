@@ -459,4 +459,13 @@
     <Setter Property="Foreground" Value="#F0ECE4" />
   </Style>
 
+
+  <!-- A widget set to "No background": no card or border, except the drag outline while unlocked. -->
+  <Style Selector="Border.card.no-card">
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="Border.card.no-card.unlocked:pointerover">
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
 </Styles>

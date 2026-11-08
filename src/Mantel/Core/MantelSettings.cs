@@ -12,6 +12,15 @@ public sealed class MantelSettings
     /// <summary>Hide widgets (and pause their work) while a full-screen app or game runs.</summary>
     public bool HideOnFullscreen { get; set; } = true;
 
+    /// <summary>While positions are locked, clicks pass straight through widgets to the desktop.</summary>
+    public bool ClickThrough { get; set; }
+
+    /// <summary>Key for the Ctrl+Alt shortcut that hides and shows all desktop widgets. Empty = none.</summary>
+    public string HideAllHotkey { get; set; } = "W";
+
+    /// <summary>Saved setups (widgets, flyouts and look) to switch between from the tray.</summary>
+    public List<SavedLayout> Layouts { get; set; } = new();
+
     /// <summary>Theme id (see ThemeManager.All).</summary>
     public string Theme { get; set; } = "glass";
 
@@ -44,6 +53,27 @@ public sealed class MantelSettings
 
     /// <summary>Whether the starter flyouts (Music, Scores, Glance) have been added.</summary>
     public bool StarterFlyoutsAdded { get; set; }
+
+    /// <summary>Copies every setting from another instance into this one (keeps this object, so everything holding it sees the change).</summary>
+    public void CopyFrom(MantelSettings other)
+    {
+        foreach (var p in typeof(MantelSettings).GetProperties())
+            if (p.CanRead && p.CanWrite) p.SetValue(this, p.GetValue(other));
+    }
+}
+
+/// <summary>A named snapshot of the whole setup: widgets and positions, flyouts, and the look.</summary>
+public sealed class SavedLayout
+{
+    public string Name { get; set; } = "Layout";
+    public DateTime SavedAt { get; set; } = DateTime.Now;
+    public List<WidgetInstanceSettings> Widgets { get; set; } = new();
+    public List<FlyoutSettings> Flyouts { get; set; } = new();
+    public string Theme { get; set; } = "glass";
+    public string Accent { get; set; } = "";
+    public int WidgetScale { get; set; } = 100;
+    public int CardOpacity { get; set; } = 100;
+    public bool CardBorders { get; set; } = true;
 }
 
 /// <summary>One widget, on the desktop or inside a flyout. A type can have several instances.</summary>
@@ -65,6 +95,12 @@ public sealed class WidgetInstanceSettings
 
     /// <summary>Per-widget options, e.g. a clock's time zone. Strings keep the format stable.</summary>
     public Dictionary<string, string> Options { get; set; } = new();
+
+    /// <summary>This widget's own size in percent (0 = follow Appearance → Widget size).</summary>
+    public int Scale { get; set; }
+
+    /// <summary>"theme" (the theme's card), "glass" (half as solid) or "none" (no card, text only).</summary>
+    public string Background { get; set; } = "theme";
 }
 
 /// <summary>A panel of widgets that slides out from a screen edge and/or opens from its own taskbar icon.</summary>

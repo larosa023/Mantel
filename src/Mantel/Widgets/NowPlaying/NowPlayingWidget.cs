@@ -96,6 +96,11 @@ public sealed class NowPlayingWidget : IWidget
 
         _progressFill.Classes.Add("fill");
         _progressFill.Height = 4;
+        // The bar updates once a second; a one-second linear glide makes it move continuously.
+        _progressFill.Transitions = new Avalonia.Animation.Transitions
+        {
+            new Avalonia.Animation.DoubleTransition { Property = Avalonia.Layout.Layoutable.WidthProperty, Duration = TimeSpan.FromMilliseconds(1000) },
+        };
         _progressTrack.Classes.Add("track");
         _progressTrack.Child = _progressFill;
         _progressTrack.Height = 4;

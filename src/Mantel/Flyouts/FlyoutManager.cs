@@ -41,6 +41,9 @@ public sealed class FlyoutManager : IDisposable
     /// <summary>Tears down and recreates every flyout from settings. Cheap; widgets are created lazily.</summary>
     private readonly Hotkeys _hotkeys = new();
 
+    /// <summary>App-wide shortcuts (like hide all widgets), registered alongside the flyouts' own.</summary>
+    public Func<IEnumerable<(string Key, Action Action)>>? GlobalShortcuts { get; set; }
+
     private static TimeSpan DwellFor(FlyoutSettings f) => TimeSpan.FromMilliseconds(f.EdgeDelay switch
     {
         "instant" => 40,
@@ -80,7 +83,8 @@ public sealed class FlyoutManager : IDisposable
         // Keyboard shortcuts toggle their flyout, like clicking its taskbar icon.
         _hotkeys.SetAll(_hosts
             .Where(h => !string.IsNullOrEmpty(h.Settings.Hotkey))
-            .Select(h => (h.Settings.Hotkey, (Action)(() => ToggleFromTaskbar(h.Window, h.Settings, fromShortcut: true)))));
+            .Select(h => (h.Settings.Hotkey, (Action)(() => ToggleFromTaskbar(h.Window, h.Settings, fromShortcut: true))))
+            .Concat(GlobalShortcuts?.Invoke() ?? Array.Empty<(string, Action)>()));
     }
 
     /// <summary>Opens a flyout from code (e.g. Settings' "Try it" button).</summary>

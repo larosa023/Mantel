@@ -70,6 +70,11 @@ public partial class App : Application
         _updates.Start();
 
         _widgets = new WidgetManager(_store) { OpenSettings = OpenSettings };
+        _widgets.SetupReplaced += () =>
+        {
+            try { ApplyTheme(); }
+            catch (Exception ex) { Log.Error("Theme failed to apply after switching layouts.", ex); }
+        };
 
         try { _tray = new TrayController(this, _widgets, _updates, OpenSettings, Quit); }
         catch (Exception ex) { Log.Error("Tray icon failed.", ex); }

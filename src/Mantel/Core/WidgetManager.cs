@@ -40,7 +40,12 @@ public sealed class WidgetManager
         _store = store;
         _fullscreen.Changed += _ => UpdateSuspension();
         _session.Changed += UpdateSuspension;
-        Flyouts = new FlyoutManager(store.Settings, s => BuildMenu(s), () => _fullscreen.IsFullscreen || _session.IsAway);
+        Flyouts = new FlyoutManager(store.Settings, s => BuildMenu(s), () => _fullscreen.IsFullscreen || _session.IsAway)
+        {
+            GlobalShortcuts = () => string.IsNullOrEmpty(Settings.HideAllHotkey)
+                ? Array.Empty<(string, Action)>()
+                : new[] { (Settings.HideAllHotkey, (Action)(() => SetHiddenByUser(!HiddenByUser))) },
+        };
     }
 
     private MantelSettings Settings => _store.Settings;
@@ -219,6 +224,103 @@ public sealed class WidgetManager
         Changed?.Invoke();
     }
 
+    public bool ClickThrough => Settings.ClickThrough;
+
+    public void SetClickThrough(bool on)
+    {
+        Settings.ClickThrough = on;
+        foreach (var (_, window) in _active.Values) window.ApplyClickThrough();
+        _store.Save();
+    }
+
+    public string HideAllHotkey => Settings.HideAllHotkey;
+
+    public void SetHideAllHotkey(string key)
+    {
+        Settings.HideAllHotkey = key;
+        foreach (var f in Settings.Flyouts.Where(f => f.Hotkey == key && key.Length > 0)) f.Hotkey = "";
+        _store.Save();
+        Flyouts.Rebuild(); // re-registers every shortcut
+    }
+
+    // --- Layouts ----------------------------------------------------------------------------------
+
+    /// <summary>Raised after a layout or imported settings replace the setup; the app re-applies the look.</summary>
+    public event Action? SetupReplaced;
+
+    public IReadOnlyList<SavedLayout> Layouts => Settings.Layouts;
+
+    /// <summary>Saves the current setup under a name (replacing a layout with the same name).</summary>
+    public SavedLayout SaveLayout(string name)
+    {
+        var layout = new SavedLayout
+        {
+            Name = name,
+            SavedAt = DateTime.Now,
+            Widgets = Clone(Settings.Widgets),
+            Flyouts = Clone(Settings.Flyouts),
+            Theme = Settings.Theme,
+            Accent = Settings.Accent,
+            WidgetScale = Settings.WidgetScale,
+            CardOpacity = Settings.CardOpacity,
+            CardBorders = Settings.CardBorders,
+        };
+        Settings.Layouts.RemoveAll(l => string.Equals(l.Name, name, StringComparison.OrdinalIgnoreCase));
+        Settings.Layouts.Add(layout);
+        _store.Save();
+        StructureChanged?.Invoke();
+        return layout;
+    }
+
+    public void ApplyLayout(SavedLayout layout)
+    {
+        Settings.Widgets = Clone(layout.Widgets);
+        Settings.Flyouts = Clone(layout.Flyouts);
+        Settings.Theme = layout.Theme;
+        Settings.Accent = layout.Accent;
+        Settings.WidgetScale = layout.WidgetScale;
+        Settings.CardOpacity = layout.CardOpacity;
+        Settings.CardBorders = layout.CardBorders;
+        ReplaceSetup();
+        Log.Info($"Switched to layout '{layout.Name}'.");
+    }
+
+    public void DeleteLayout(SavedLayout layout)
+    {
+        Settings.Layouts.Remove(layout);
+        _store.Save();
+        StructureChanged?.Invoke();
+    }
+
+    /// <summary>Takes imported settings: everything except updates and the saved layouts list is replaced.</summary>
+    public void Import(MantelSettings imported)
+    {
+        var keepLayouts = Settings.Layouts;
+        var auto = Settings.AutoUpdate;
+        var beta = Settings.BetaUpdates;
+        var last = Settings.LastRunVersion;
+        _store.Settings.CopyFrom(imported);
+        Settings.Layouts = imported.Layouts.Count > 0 ? imported.Layouts : keepLayouts;
+        Settings.AutoUpdate = auto;
+        Settings.BetaUpdates = beta;
+        Settings.LastRunVersion = last;
+        WidgetRegistry.EnsureInstances(Settings, isFirstRun: false);
+        ReplaceSetup();
+    }
+
+    private void ReplaceSetup()
+    {
+        _store.Save();
+        _fullscreen.SetEnabled(Settings.HideOnFullscreen);
+        SetupReplaced?.Invoke(); // re-applies the theme, then rebuilds everything
+        ReloadAll();
+        StructureChanged?.Invoke();
+        Changed?.Invoke();
+    }
+
+    private static List<T> Clone<T>(List<T> items) =>
+        System.Text.Json.JsonSerializer.Deserialize<List<T>>(System.Text.Json.JsonSerializer.Serialize(items)) ?? new();
+
     public void SetSnapToGrid(bool snap)
     {
         Settings.SnapToGrid = snap;
@@ -253,7 +355,7 @@ public sealed class WidgetManager
         try
         {
             widget = descriptor.Create(s);
-            var window = new WidgetWindow(widget, s, Settings.Locked, () => Settings.SnapToGrid, BuildMenu(s));
+            var window = new WidgetWindow(widget, s, Settings.Locked, () => Settings.SnapToGrid, BuildMenu(s), () => Settings.ClickThrough);
             window.Moved += _store.Save;
             window.PlaceOnScreen(fallbackIndex);
             _active[s.Id] = (widget, window);

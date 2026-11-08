@@ -47,6 +47,11 @@ public static class Icons
     public const string Motion = "M4 12h9 M4 7h5 M4 17h5 M13 7l5 5-5 5";
     public const string Keyboard = "M3 7h18v10H3z M7 10h.01 M11 10h.01 M15 10h.01 M7 13h.01 M17 13h.01 M9 14.5h6";
     public const string Monitor = "M3 5h18v11H3z M9 20h6 M12 16v4";
+    public const string Layers = "M12 4l9 5-9 5-9-5z M3 14l9 5 9-5";
+    public const string Download = "M12 4v11 M7.5 10.5 12 15l4.5-4.5 M5 20h14";
+    public const string Upload = "M12 15V4 M7.5 8.5 12 4l4.5 4.5 M5 20h14";
+    public const string Pointer = "M6 3l12 8-5.5 1.5L10 18z M13 13l5 6";
+    public const string EyeOff = "M3 3l18 18 M10.6 6.1A9.6 9.6 0 0 1 12 6c5 0 8.5 4 9.5 6-.5 1-1.6 2.6-3.2 3.9 M6.6 7.6C4.6 8.9 3.2 10.7 2.5 12c1 2 4.5 6 9.5 6 1.6 0 3-.4 4.2-1 M9.9 10a3 3 0 0 0 4.1 4.2";
     public const string Resize = "M4 14v6h6 M20 10V4h-6 M4 20l7-7 M20 4l-7 7";
 
     /// <summary>The icon for a widget type.</summary>

@@ -27,11 +27,14 @@ public sealed class WidgetWindow : Window
     /// <summary>Raised (debounced) after the user drags the widget somewhere new.</summary>
     public event Action? Moved;
 
+    private readonly Func<bool> _clickThrough;
+
     public WidgetWindow(IWidget widget, WidgetInstanceSettings settings, bool locked,
-                        Func<bool> snapEnabled, ContextMenu menu)
+                        Func<bool> snapEnabled, ContextMenu menu, Func<bool>? clickThrough = null)
     {
         _settings = settings;
         _snapEnabled = snapEnabled;
+        _clickThrough = clickThrough ?? (() => false);
 
         Title = "Mantel widget";
         SystemDecorations = SystemDecorations.None;
@@ -45,8 +48,10 @@ public sealed class WidgetWindow : Window
 
         Mantel.UI.WidgetCard.ApplyFont(this);
         _card = Mantel.UI.WidgetCard.Create(widget.View, menu);
-        // Appearance → Widget size scales desktop widgets as a whole (text, art and spacing together).
-        var scale = Mantel.Theme.ThemeManager.WidgetScale;
+        Mantel.UI.WidgetCard.ApplyLook(_card, widget.View, settings.Background);
+        // Widget size scales the whole widget (text, art and spacing together): its own size if
+        // set, otherwise Appearance → Widget size.
+        var scale = settings.Scale > 0 ? Math.Clamp(settings.Scale, 60, 200) / 100.0 : Mantel.Theme.ThemeManager.WidgetScale;
         Content = Math.Abs(scale - 1) < 0.001
             ? _card
             : new LayoutTransformControl { LayoutTransform = new Avalonia.Media.ScaleTransform(scale, scale), Child = _card };
@@ -68,6 +73,15 @@ public sealed class WidgetWindow : Window
         _locked = locked;
         _card.Classes.Set("unlocked", !locked);
         Cursor = locked ? Cursor.Default : new Cursor(StandardCursorType.SizeAll);
+        ApplyClickThrough();
+    }
+
+    /// <summary>Locked + "Click-through" on: the widget ignores the mouse entirely.</summary>
+    public void ApplyClickThrough()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        var hwnd = TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+        if (hwnd != IntPtr.Zero) NativeMethods.SetClickThrough(hwnd, _locked && _clickThrough());
     }
 
     /// <summary>Restores the saved position, or picks one if it's missing or off-screen.</summary>
@@ -161,6 +175,7 @@ public sealed class WidgetWindow : Window
         if (hwnd == IntPtr.Zero) return;
         NativeMethods.MakeToolWindow(hwnd);
         DesktopLayer.Pin(hwnd); // stays under every normal window, even when clicked or re-shown
+        ApplyClickThrough();
     }
 
     private void SendToBottom()

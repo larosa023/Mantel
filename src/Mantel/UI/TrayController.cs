@@ -16,6 +16,7 @@ public sealed class TrayController
     private readonly TrayIcon _tray;
     private readonly Dictionary<string, NativeMenuItem> _widgetItems = new();
     private NativeMenuItem _lockItem = null!;
+    private NativeMenuItem _hideItem = null!;
     private NativeMenuItem _updateItem = null!;
 
     public TrayController(Application app, WidgetManager widgets, UpdateService updates, Action openSettings, Action quit)
@@ -99,6 +100,24 @@ public sealed class TrayController
             menu.Items.Add(new NativeMenuItem("Open flyout") { Menu = flyoutMenu });
         }
         menu.Items.Add(_lockItem);
+
+        _hideItem = new NativeMenuItem("Hide widgets") { ToggleType = NativeMenuItemToggleType.CheckBox };
+        if (!string.IsNullOrEmpty(_widgets.HideAllHotkey)) _hideItem.Header = $"Hide widgets   (Ctrl+Alt+{_widgets.HideAllHotkey})";
+        _hideItem.Click += (_, _) => _widgets.SetHiddenByUser(!_widgets.HiddenByUser);
+        menu.Items.Add(_hideItem);
+
+        if (_widgets.Layouts.Count > 0)
+        {
+            var layouts = new NativeMenu();
+            foreach (var layout in _widgets.Layouts)
+            {
+                var l = layout;
+                var item = new NativeMenuItem(layout.Name);
+                item.Click += (_, _) => _widgets.ApplyLayout(l);
+                layouts.Items.Add(item);
+            }
+            menu.Items.Add(new NativeMenuItem("Layouts") { Menu = layouts });
+        }
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(settings);
         menu.Items.Add(_updateItem);
@@ -111,6 +130,7 @@ public sealed class TrayController
     {
         foreach (var (id, item) in _widgetItems) item.IsChecked = _widgets.IsEnabled(id);
         _lockItem.IsChecked = _widgets.Locked;
+        _hideItem.IsChecked = _widgets.HiddenByUser;
 
         _updateItem.Header = _updates.State switch
         {

@@ -30,6 +30,17 @@ internal static class NativeMethods
     public static void SendToBottom(IntPtr hwnd) =>
         SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
+    public const long WS_EX_TRANSPARENT = 0x00000020; // mouse input passes through to what's below
+    public const long WS_EX_LAYERED = 0x00080000;
+
+    /// <summary>Makes a window ignore the mouse (clicks reach the desktop underneath), or not.</summary>
+    public static void SetClickThrough(IntPtr hwnd, bool through)
+    {
+        var style = GetWindowLongPtr(hwnd, GWL_EXSTYLE).ToInt64();
+        style = through ? style | WS_EX_TRANSPARENT | WS_EX_LAYERED : style & ~WS_EX_TRANSPARENT;
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE, new IntPtr(style));
+    }
+
     public static void MakeToolWindow(IntPtr hwnd)
     {
         var style = GetWindowLongPtr(hwnd, GWL_EXSTYLE).ToInt64();

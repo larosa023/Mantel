@@ -24,7 +24,7 @@ public sealed class FlyoutWindow : Window
     private readonly FlyoutPanel _panel;
     private readonly TranslateTransform _slide = new();
     private readonly ScaleTransform _scale = new(1, 1);
-    private DispatcherTimer? _animation;
+    private int _animationId; // bumps on every new animation; older frame callbacks stop themselves
     private PixelPoint _anchor;
     private bool _placed;
 
@@ -235,7 +235,7 @@ public sealed class FlyoutWindow : Window
     /// </summary>
     private void Animate(bool opening, Action? done = null)
     {
-        _animation?.Stop();
+        var id = ++_animationId;
         var style = _flyout.Animation;
 
         // Grow and slide from the side the flyout is attached to.
@@ -262,7 +262,7 @@ public sealed class FlyoutWindow : Window
         var from = Opacity;
         var to = opening ? 1.0 : 0.0;
 
-        void Step()
+        bool Step()
         {
             var t = Math.Clamp((DateTime.UtcNow - started) / length, 0, 1);
             var fade = from + (to - from) * (opening ? EaseOut(Math.Min(1, t * 1.6)) : t);
@@ -287,10 +287,10 @@ public sealed class FlyoutWindow : Window
 
             if (t >= 1)
             {
-                _animation?.Stop();
                 Apply(to, 0, 1);
                 done?.Invoke();
             }
+            return t < 1;
         }
 
         void Apply(double opacity, double offset, double scale)
@@ -302,9 +302,14 @@ public sealed class FlyoutWindow : Window
             _scale.ScaleY = scale;
         }
 
-        _animation = new DispatcherTimer(TimeSpan.FromMilliseconds(8), DispatcherPriority.Render, (_, _) => Step());
-        Step();
-        _animation.Start();
+        // Drive it from the compositor's frame clock: one step per screen refresh, in sync with
+        // what's actually drawn (no timer drift, no doubled or skipped frames).
+        void Frame(TimeSpan _)
+        {
+            if (id != _animationId) return; // superseded by a newer animation
+            if (Step()) RequestAnimationFrame(Frame);
+        }
+        if (Step()) RequestAnimationFrame(Frame);
     }
 
     private static double EaseOut(double t) => 1 - Math.Pow(1 - t, 4);
