@@ -44,8 +44,9 @@ internal sealed class GameView
     private int _playsShown = 25;
 
     public GameView(HttpClient http, Dictionary<string, Bitmap> logos, string site, string league, string id,
-                    Action back, Action<string> openFullcourt)
+                    Action back, Action<string> openFullcourt, string tab = "overview")
     {
+        _tab = tab;
         _http = http;
         _logos = logos;
         _site = site;
@@ -642,7 +643,9 @@ internal sealed class GameView
         if (leadersAway.Count > 0 || leadersHome.Count > 0)
         {
             stack.Children.Add(Section("Season leaders"));
-            var stats = leadersAway.Select(l => l.Stat).Concat(leadersHome.Select(l => l.Stat)).Distinct().Take(3);
+            // Points, rebounds, assists, in that order, whatever order ESPN lists them in.
+            static int Rank(string stat) => stat.StartsWith("P", StringComparison.OrdinalIgnoreCase) ? 0 : stat.StartsWith("R", StringComparison.OrdinalIgnoreCase) ? 1 : 2;
+            var stats = leadersAway.Select(l => l.Stat).Concat(leadersHome.Select(l => l.Stat)).Distinct().OrderBy(Rank).Take(3);
             foreach (var stat in stats)
             {
                 Control Side(List<Leader> list, bool right)

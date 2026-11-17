@@ -97,7 +97,8 @@ public sealed class ScoresWidget : IWidget
         // Day switcher: ‹ TODAY ›. Click the day to jump back to today.
         Button Arrow(string icon, int delta, string tip)
         {
-            var b = new Button { Content = Mantel.UI.Icons.Create(icon, 13), Padding = new Thickness(4, 3), VerticalAlignment = VerticalAlignment.Center };
+            // Button.row pulls itself outward with a negative margin; these sit side by side, so reset it.
+            var b = new Button { Content = Mantel.UI.Icons.Create(icon, 14), Padding = new Thickness(5, 4), Margin = new Thickness(0), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
             b.Classes.Add("row");
             ToolTip.SetTip(b, tip);
             b.Click += (_, _) => ChangeDay(_offset + delta);
@@ -105,9 +106,9 @@ public sealed class ScoresWidget : IWidget
         }
         _day.Classes.Add("label");
         _day.VerticalAlignment = VerticalAlignment.Center;
-        _day.MinWidth = 64;
+        _day.MinWidth = 70;
         _day.TextAlignment = TextAlignment.Center;
-        var dayButton = new Button { Content = _day, Padding = new Thickness(4, 3), VerticalAlignment = VerticalAlignment.Center };
+        var dayButton = new Button { Content = _day, Padding = new Thickness(6, 4), Margin = new Thickness(2, 0), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
         dayButton.Classes.Add("row");
         ToolTip.SetTip(dayButton, "Back to today");
         dayButton.Click += (_, _) => ChangeDay(0);
@@ -115,7 +116,7 @@ public sealed class ScoresWidget : IWidget
         {
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(0, -3, -4, -3),
+            Margin = new Thickness(0, -4, -5, -4),
             Children = { Arrow(Mantel.UI.Icons.ChevronLeft, -1, "Previous day"), dayButton, Arrow(Mantel.UI.Icons.ChevronRight, 1, "Next day") },
         };
 
@@ -168,7 +169,7 @@ public sealed class ScoresWidget : IWidget
         _cts?.Cancel(); // the list doesn't need to refresh while it's hidden
         _game?.Stop();
         _game = new GameView(Http, Logos, Site, League, g.Id, ShowList,
-            url => Mantel.Integrations.FullcourtLauncher.Open(url, OpenIn));
+            url => Mantel.Integrations.FullcourtLauncher.Open(url, OpenIn), Opt("previewTab", "overview"));
         _host.Content = _game.View;
         _game.Start();
     }
