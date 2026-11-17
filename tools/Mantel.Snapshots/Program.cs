@@ -196,6 +196,8 @@ internal static class Scenes
         ["music"] = () => Flyout(MakeFlyout("Music", "music", "none", ("now-playing", new() { ["hideWhenIdle"] = "false" }))),
         ["scores"] = () => Flyout(MakeFlyout("Scores", "scores", "none", ("scores", new() { ["league"] = "nba", ["max"] = "8" }))),
         ["scores-game"] = () => Flyout(MakeFlyout("Scores", "scores", "right", ("scores", new() { ["league"] = "nba", ["max"] = "8", ["previewGame"] = "true" }))),
+        ["scores-tomorrow"] = () => Flyout(MakeFlyout("Scores", "scores", "none", ("scores", new() { ["league"] = "nba", ["max"] = "8", ["previewOffset"] = "1" }))),
+        ["scores-matchup"] = () => Flyout(MakeFlyout("Scores", "scores", "right", ("scores", new() { ["league"] = "nba", ["max"] = "8", ["previewOffset"] = "1", ["previewGame"] = "true" }))),
     };
 
     private static (FlyoutSettings, List<WidgetInstanceSettings>) MakeFlyout(string name, string icon, string edge,

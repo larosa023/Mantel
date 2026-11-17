@@ -30,12 +30,19 @@ public sealed class ScoresWidget : IWidget
     private readonly StackPanel _games = new() { Spacing = 2 };
     private readonly TextBlock _empty = new() { TextWrapping = TextWrapping.Wrap };
     private readonly ContentControl _host = new();
+    private readonly TextBlock _day = new();
+    private int _offset;
     private StackPanel? _list;
     private GameView? _game;
     private Control? _view;
     private CancellationTokenSource? _cts;
 
-    public ScoresWidget(WidgetInstanceSettings settings) => _settings = settings;
+    public ScoresWidget(WidgetInstanceSettings settings)
+    {
+        _settings = settings;
+        // Snapshot renders can start on another day.
+        _offset = int.TryParse(Opt("previewOffset", "0"), out var o) ? o : 0;
+    }
 
     private static HttpClient CreateClient()
     {
@@ -72,6 +79,7 @@ public sealed class ScoresWidget : IWidget
     private Control BuildView()
     {
         _header.Classes.Add("label");
+        _header.TextTrimming = TextTrimming.CharacterEllipsis;
         _header.VerticalAlignment = VerticalAlignment.Center;
         _livePill.Classes.Add("pill");
         _livePill.Child = new TextBlock { Text = "LIVE" };
@@ -79,18 +87,80 @@ public sealed class ScoresWidget : IWidget
         _livePill.VerticalAlignment = VerticalAlignment.Center;
         _empty.Classes.Add("muted");
 
-        var header = new StackPanel
+        var title = new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            Margin = new Thickness(0, 0, 0, 8),
+            VerticalAlignment = VerticalAlignment.Center,
             Children = { _header, _livePill },
         };
+
+        // Day switcher: ‹ TODAY ›. Click the day to jump back to today.
+        Button Arrow(string icon, int delta, string tip)
+        {
+            var b = new Button { Content = Mantel.UI.Icons.Create(icon, 13), Padding = new Thickness(4, 3), VerticalAlignment = VerticalAlignment.Center };
+            b.Classes.Add("row");
+            ToolTip.SetTip(b, tip);
+            b.Click += (_, _) => ChangeDay(_offset + delta);
+            return b;
+        }
+        _day.Classes.Add("label");
+        _day.VerticalAlignment = VerticalAlignment.Center;
+        _day.MinWidth = 64;
+        _day.TextAlignment = TextAlignment.Center;
+        var dayButton = new Button { Content = _day, Padding = new Thickness(4, 3), VerticalAlignment = VerticalAlignment.Center };
+        dayButton.Classes.Add("row");
+        ToolTip.SetTip(dayButton, "Back to today");
+        dayButton.Click += (_, _) => ChangeDay(0);
+        var days = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(0, -3, -4, -3),
+            Children = { Arrow(Mantel.UI.Icons.ChevronLeft, -1, "Previous day"), dayButton, Arrow(Mantel.UI.Icons.ChevronRight, 1, "Next day") },
+        };
+
+        var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 0, 0, 8) };
+        header.Children.Add(title);
+        Grid.SetColumn(days, 1);
+        header.Children.Add(days);
+        _day.Text = DayLabel(null);
         _header.Text = LeagueName(League);
         _empty.Text = "Loading scores…";
         _list = new StackPanel { Width = Width, Children = { header, _games, _empty } };
         _host.Content = _list;
         return _host;
     }
+
+    private void ChangeDay(int offset)
+    {
+        offset = Math.Clamp(offset, -14, 14);
+        if (offset == _offset) return;
+        _offset = offset;
+        _day.Text = DayLabel(null);
+        _games.Children.Clear();
+        _livePill.IsVisible = false;
+        _empty.Text = "Loading games…";
+        _empty.IsVisible = true;
+        Start();
+    }
+
+    /// <summary>TODAY, YESTERDAY, TOMORROW, or the date ("SAT, NOV 21").</summary>
+    private string DayLabel(string? yyyymmdd) => _offset switch
+    {
+        0 => "TODAY",
+        -1 => "YESTERDAY",
+        1 => "TOMORROW",
+        _ => (DateTime.TryParseExact(yyyymmdd, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : DateTime.Today.AddDays(_offset))
+            .ToString("ddd, MMM d", CultureInfo.CurrentCulture).ToUpperInvariant(),
+    };
+
+    private string DayPhrase => _offset switch
+    {
+        0 => "today",
+        -1 => "yesterday",
+        1 => "tomorrow",
+        _ => "on " + DateTime.Today.AddDays(_offset).ToString("dddd, MMM d", CultureInfo.CurrentCulture),
+    };
 
     /// <summary>Swap the list for one game's live view, inside the widget.</summary>
     private void ShowGame(Game g)
@@ -135,10 +205,11 @@ public sealed class ScoresWidget : IWidget
             var wait = TimeSpan.FromMinutes(2);
             try
             {
-                var url = $"{Site}/api/scores?league={League}" +
+                var url = $"{Site}/api/scores?league={League}" + (_offset != 0 ? $"&offset={_offset}" : "") +
                           (Teams.Length > 0 ? $"&teams={Uri.EscapeDataString(Teams)}" : "");
                 var json = await Http.GetStringAsync(url, ct);
                 var board = Parse(json);
+                if (ct.IsCancellationRequested) return; // the day changed while this was loading
                 if (board is not null)
                 {
                     wait = TimeSpan.FromSeconds(Math.Clamp(board.Refresh, 15, 900));
@@ -169,7 +240,7 @@ public sealed class ScoresWidget : IWidget
 
     private sealed record Team(string Abbr, string Name, int? Score, string Record, int? Rank, string? Logo, bool Winner);
     private sealed record Game(string Id, string State, string Status, DateTimeOffset Start, string Tv, Team Home, Team Away, string Url);
-    private sealed record Board(bool Live, int Refresh, IReadOnlyList<Game> Games);
+    private sealed record Board(bool Live, int Refresh, IReadOnlyList<Game> Games, string Date);
 
     private static Board? Parse(string json)
     {
@@ -187,7 +258,7 @@ public sealed class ScoresWidget : IWidget
             DateTimeOffset.TryParse(S(g, "start"), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var st) ? st : DateTimeOffset.MinValue,
             S(g, "tv"), T(g.GetProperty("home")), T(g.GetProperty("away")), S(g, "url"))).ToList();
 
-        return new Board(r.TryGetProperty("live", out var lv) && lv.ValueKind == JsonValueKind.True, I(r, "refresh") ?? 120, games);
+        return new Board(r.TryGetProperty("live", out var lv) && lv.ValueKind == JsonValueKind.True, I(r, "refresh") ?? 120, games, S(r, "date"));
     }
 
     // --- Display ---------------------------------------------------------------------
@@ -198,6 +269,7 @@ public sealed class ScoresWidget : IWidget
     {
         _header.Text = LeagueName(League) + (Teams.Length > 0 ? $" · {Teams.Replace(",", ", ")}" : "");
         _livePill.IsVisible = board.Live;
+        _day.Text = DayLabel(board.Date);
         _games.Children.Clear();
         _logoSlots.Clear();
 
@@ -222,8 +294,9 @@ public sealed class ScoresWidget : IWidget
 
         _empty.IsVisible = shown.Count == 0;
         var friendly = League switch { "wnba" => "WNBA", "ncaam" => "men's college", "ncaaw" => "women's college", _ => "NBA" };
-        _empty.Text = Teams.Length > 0 ? $"No games today for {Teams.Replace(",", ", ")}." : $"No {friendly} games today.";
-        View.IsVisible = !(HideWhenEmpty && shown.Count == 0);
+        _empty.Text = Teams.Length > 0 ? $"No games {DayPhrase} for {Teams.Replace(",", ", ")}." : $"No {friendly} games {DayPhrase}.";
+        // Only hide on today's empty slate; if you've browsed to another day, stay visible.
+        View.IsVisible = !(HideWhenEmpty && shown.Count == 0 && _offset == 0);
     }
 
     private Control GameRow(Game g)
