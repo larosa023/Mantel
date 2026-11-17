@@ -29,6 +29,9 @@ public sealed class ScoresWidget : IWidget
     private readonly Border _livePill = new() { IsVisible = false };
     private readonly StackPanel _games = new() { Spacing = 2 };
     private readonly TextBlock _empty = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly ContentControl _host = new();
+    private StackPanel? _list;
+    private GameView? _game;
     private Control? _view;
     private CancellationTokenSource? _cts;
 
@@ -49,6 +52,9 @@ public sealed class ScoresWidget : IWidget
 
     /// <summary>"web" opens games in the browser; "app" in the installed Fullcourt app.</summary>
     private string OpenIn => Opt("openIn", "web");
+
+    /// <summary>"stats" opens the game right in the widget; "fullcourt" opens it in Fullcourt.</summary>
+    private string ClickAction => Opt("click", "stats");
 
     private string Opt(string key, string fallback) =>
         _settings.Options.TryGetValue(key, out var v) && !string.IsNullOrWhiteSpace(v) ? v : fallback;
@@ -81,18 +87,44 @@ public sealed class ScoresWidget : IWidget
         };
         _header.Text = LeagueName(League);
         _empty.Text = "Loading scores…";
-        return new StackPanel { Width = Width, Children = { header, _games, _empty } };
+        _list = new StackPanel { Width = Width, Children = { header, _games, _empty } };
+        _host.Content = _list;
+        return _host;
+    }
+
+    /// <summary>Swap the list for one game's live view, inside the widget.</summary>
+    private void ShowGame(Game g)
+    {
+        _cts?.Cancel(); // the list doesn't need to refresh while it's hidden
+        _game?.Stop();
+        _game = new GameView(Http, Logos, Site, League, g.Id, ShowList,
+            url => Mantel.Integrations.FullcourtLauncher.Open(url, OpenIn));
+        _host.Content = _game.View;
+        _game.Start();
+    }
+
+    private void ShowList()
+    {
+        _game?.Stop();
+        _game = null;
+        _host.Content = _list;
+        Start();
     }
 
     public void Start()
     {
         _ = View;
+        if (_game is not null) { _game.Start(); return; }
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
         _ = LoopAsync(_cts.Token);
     }
 
-    public void Stop() => _cts?.Cancel();
+    public void Stop()
+    {
+        _cts?.Cancel();
+        _game?.Stop();
+    }
 
     public void Dispose() => Stop();
 
@@ -171,6 +203,13 @@ public sealed class ScoresWidget : IWidget
 
         var shown = board.Games.Take(Max).ToList();
         foreach (var g in shown) _games.Children.Add(GameRow(g));
+
+        // Used by the snapshot renderer to picture the game view: open the most interesting game.
+        if (Opt("previewGame", "") == "true" && _game is null && shown.Count > 0)
+        {
+            var pick = shown.FirstOrDefault(x => x.State == "in") ?? shown.FirstOrDefault(x => x.State == "post") ?? shown[0];
+            Dispatcher.UIThread.Post(() => ShowGame(pick));
+        }
 
         var more = board.Games.Count - shown.Count;
         if (more > 0)
@@ -269,8 +308,13 @@ public sealed class ScoresWidget : IWidget
 
         var button = new Button { Content = row };
         button.Classes.Add("row");
-        if (g.Url.Length > 0) button.Click += (_, _) => Mantel.Integrations.FullcourtLauncher.Open(g.Url, OpenIn);
-        ToolTip.SetTip(button, $"{g.Away.Name} at {g.Home.Name}" + (g.Tv.Length > 0 ? $" · {g.Tv}" : ""));
+        button.Click += (_, _) =>
+        {
+            if (ClickAction == "stats" && g.Id.Length > 0) ShowGame(g);
+            else if (g.Url.Length > 0) Mantel.Integrations.FullcourtLauncher.Open(g.Url, OpenIn);
+        };
+        ToolTip.SetTip(button, $"{g.Away.Name} at {g.Home.Name}" + (g.Tv.Length > 0 ? $" · {g.Tv}" : "") +
+            (ClickAction == "stats" ? "\nClick for live stats" : ""));
         return button;
     }
 
@@ -307,6 +351,10 @@ public sealed class ScoresWidget : IWidget
             OptionsUi.Text(ctx, "teams", "Only these teams", "e.g. BOS, NY", "Team abbreviations, separated by commas. Leave empty for every game."),
             OptionsUi.Choice(ctx, "max", "Games to show", new[] { ("3", "3"), ("4", "4"), ("6", "6"), ("8", "8"), ("12", "12") }, "6"),
             OptionsUi.Toggle(ctx, "hideWhenEmpty", "Hide when there are no games"),
+            OptionsUi.Choice(ctx, "click", "When you click a game", new[]
+            {
+                ("stats", "Live stats here"), ("fullcourt", "Open Fullcourt"),
+            }, "stats"),
             OpenInOption(ctx),
             OptionsUi.Text(ctx, "site", "Fullcourt address", DefaultSite, "Change this only if you move Fullcourt to a new host."));
 

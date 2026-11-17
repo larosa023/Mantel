@@ -195,6 +195,7 @@ internal static class Scenes
             ("clock", null), ("weather", Holmdel()), ("system-stats", null), ("countdown", new() { ["title"] = "Bid due", ["target"] = DateTime.Now.AddDays(4).ToString("yyyy-MM-ddTHH:mm") }))),
         ["music"] = () => Flyout(MakeFlyout("Music", "music", "none", ("now-playing", new() { ["hideWhenIdle"] = "false" }))),
         ["scores"] = () => Flyout(MakeFlyout("Scores", "scores", "none", ("scores", new() { ["league"] = "nba", ["max"] = "8" }))),
+        ["scores-game"] = () => Flyout(MakeFlyout("Scores", "scores", "right", ("scores", new() { ["league"] = "nba", ["max"] = "8", ["previewGame"] = "true" }))),
     };
 
     private static (FlyoutSettings, List<WidgetInstanceSettings>) MakeFlyout(string name, string icon, string edge,

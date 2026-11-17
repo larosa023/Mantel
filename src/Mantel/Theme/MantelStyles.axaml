@@ -116,6 +116,10 @@
     <Setter Property="Height" Value="1" />
   </Style>
 
+  <Style Selector="Border.inset">
+    <Setter Property="Background" Value="{DynamicResource Mantel.SectionBackground}" />
+  </Style>
+
   <Style Selector="Border.placeholder">
     <Setter Property="Background" Value="{DynamicResource Mantel.Track}" />
   </Style>
