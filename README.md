@@ -8,7 +8,7 @@ Clean, lightweight desktop widgets for Windows. A Rainmeter alternative that loo
 | --- | --- |
 | Clock | Time and date. Add more for world clocks, each with its own time zone and label. |
 | Now Playing | Track, art and progress with previous/play/next. With [Amplite](https://github.com/larosa023/amplite) running it also switches **EQ presets**, changes volume on scroll and seeks on click. Otherwise it works with Spotify, browsers and most players. |
-| Scores | Live NBA, WNBA and college games from [Fullcourt](https://github.com/larosa023/fullcourt). Click a game to open it there. |
+| Scores | Live NBA, WNBA and college games from [Fullcourt](https://github.com/larosa023/fullcourt). Click a game for its **live stats right in the widget**: score, win probability, points by quarter, each team's box score, team stats side by side and the latest plays, refreshing every 15 seconds. (Or set it to open Fullcourt instead.) |
 | Weather | Current conditions, high/low, feels-like, wind and a 3-day forecast (Open-Meteo, no API key). |
 | PC stats | CPU (with history) and memory, plus optional top apps by memory and uptime. |
 | Countdown | Days, hours and minutes to a date. |
